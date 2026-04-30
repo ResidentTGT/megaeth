@@ -1,0 +1,15 @@
+services:
+  - type: web
+    runtime: node
+    name: megaeth-leaderboard-api
+    plan: free
+    buildCommand: npm ci && npm run build -w backend
+    startCommand: npm run start -w backend
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 22.13.1
+      - key: LEADERBOARD_CACHE_TTL_MS
+        value: 60000
+      - key: FRONTEND_ORIGIN
+        sync: false
