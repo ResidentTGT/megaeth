@@ -32,6 +32,9 @@ const columns: Array<{ key: SortKey; label: string; numeric?: boolean }> = [
 ];
 
 const numberFormatter = new Intl.NumberFormat("en-US");
+const averageFormatter = new Intl.NumberFormat("en-US", {
+  maximumFractionDigits: 2,
+});
 
 const compareValues = (
   left: LeaderboardEntry,
@@ -127,6 +130,24 @@ export default function App() {
     });
   }, [leaderboard, sort, walletQuery]);
 
+  const stats = useMemo(() => {
+    if (!leaderboard) return null;
+    if (leaderboard.stats) return leaderboard.stats;
+
+    const totalPointsSum = leaderboard.entries.reduce(
+      (sum, entry) => sum + entry.totalPoints,
+      0
+    );
+
+    return {
+      entriesCount: leaderboard.entries.length,
+      totalPointsSum,
+      averageTotalPoints: leaderboard.entries.length
+        ? totalPointsSum / leaderboard.entries.length
+        : 0,
+    };
+  }, [leaderboard]);
+
   const toggleSort = (key: SortKey) => {
     setSort((current) => {
       if (current.key !== key) {
@@ -157,7 +178,7 @@ export default function App() {
             <h1>Leaderboard</h1>
             <p>
               {leaderboard ? numberFormatter.format(leaderboard.entries.length) : "-"}{" "}
-              entries · Updated {formatUpdatedAt(leaderboard?.updatedAt)}
+              entries - Updated {formatUpdatedAt(leaderboard?.updatedAt)}
             </p>
           </div>
 
@@ -171,6 +192,27 @@ export default function App() {
             Refresh
           </button>
         </header>
+
+        <section className="metrics" aria-label="Leaderboard summary">
+          <div className="metric">
+            <span className="metric-label">Entries</span>
+            <strong>
+              {stats ? numberFormatter.format(stats.entriesCount) : "-"}
+            </strong>
+          </div>
+          <div className="metric">
+            <span className="metric-label">Total Points</span>
+            <strong>
+              {stats ? numberFormatter.format(stats.totalPointsSum) : "-"}
+            </strong>
+          </div>
+          <div className="metric">
+            <span className="metric-label">Average Points</span>
+            <strong>
+              {stats ? averageFormatter.format(stats.averageTotalPoints) : "-"}
+            </strong>
+          </div>
+        </section>
 
         <section className="controls" aria-label="Leaderboard controls">
           <label className="search-field">

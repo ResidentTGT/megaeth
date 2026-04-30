@@ -13,5 +13,10 @@ export type LeaderboardPayload = {
 
 export type LeaderboardResponse = {
   updatedAt: string;
+  stats: {
+    entriesCount: number;
+    totalPointsSum: number;
+    averageTotalPoints: number;
+  };
   entries: LeaderboardEntry[];
 };

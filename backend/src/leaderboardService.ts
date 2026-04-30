@@ -28,8 +28,18 @@ const fetchLeaderboardFromSource = async (): Promise<LeaderboardResponse> => {
     throw new Error("MegaETH leaderboard payload does not contain entries.all");
   }
 
+  const totalPointsSum = entries.all.reduce(
+    (sum, entry) => sum + entry.totalPoints,
+    0
+  );
+
   return {
     updatedAt: new Date().toISOString(),
+    stats: {
+      entriesCount: entries.all.length,
+      totalPointsSum,
+      averageTotalPoints: entries.all.length ? totalPointsSum / entries.all.length : 0,
+    },
     entries: entries.all,
   };
 };

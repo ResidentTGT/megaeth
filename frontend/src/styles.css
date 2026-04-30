@@ -114,6 +114,33 @@ p {
   background: #26322d;
 }
 
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.metric {
+  display: grid;
+  gap: 6px;
+  border: 1px solid #29302d;
+  border-radius: 8px;
+  background: #151918;
+  padding: 14px;
+}
+
+.metric-label {
+  color: #94a39a;
+  font-size: 13px;
+}
+
+.metric strong {
+  color: #ffffff;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
 .controls {
   display: flex;
   align-items: center;
@@ -270,6 +297,10 @@ tbody tr:last-child td {
   .controls {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .metrics {
+    grid-template-columns: 1fr;
   }
 
   .result-count {
