@@ -16,6 +16,7 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background: #101211;
+  overflow-x: hidden;
 }
 
 button,
@@ -36,6 +37,7 @@ button:disabled {
   display: grid;
   min-height: 100vh;
   grid-template-columns: 232px minmax(0, 1fr);
+  overflow-x: hidden;
 }
 
 .sidebar {
@@ -75,6 +77,8 @@ button:disabled {
 
 .content {
   min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
   padding: 28px;
 }
 
@@ -201,15 +205,21 @@ p {
 }
 
 .table-wrap {
+  width: 100%;
+  max-width: 100%;
+  max-height: calc(100vh - 292px);
   overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   border: 1px solid #29302d;
   border-radius: 8px;
   background: #151918;
+  -webkit-overflow-scrolling: touch;
 }
 
 table {
-  width: 100%;
-  min-width: 960px;
+  width: max-content;
+  min-width: 100%;
   border-collapse: collapse;
 }
 
@@ -219,6 +229,7 @@ td {
   padding: 12px 14px;
   text-align: left;
   vertical-align: middle;
+  white-space: nowrap;
 }
 
 th {
@@ -291,6 +302,10 @@ tbody tr:last-child td {
 
   .content {
     padding: 18px 16px;
+  }
+
+  .table-wrap {
+    max-height: calc(100vh - 372px);
   }
 
   .toolbar,
