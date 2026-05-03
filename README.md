@@ -56,10 +56,10 @@ Manual Render settings:
 - Build command:
 
 ```bash
-npm ci && npm run build -w shared && npm run build -w backend
+npm ci && npm run build -w backend
 ```
 
-`backend` also has a `prebuild` hook that builds `../shared`, so `npm run build -w backend` remains safe if Render runs the backend workspace build command directly.
+The backend `prebuild` hook builds `../shared` first.
 
 - Start command:
 
@@ -96,23 +96,7 @@ https://your-backend.onrender.com
 
 Create a Vercel project from the same GitHub repository.
 
-Recommended Vercel settings if the Vercel project root is the repository root:
-
-- Root directory: repository root
-- Framework preset: `Vite`
-- Build command:
-
-```bash
-npm run build -w shared && npm run build -w frontend
-```
-
-- Output directory:
-
-```text
-frontend/dist
-```
-
-Alternative Vercel settings if the Vercel project root is `frontend`:
+Recommended Vercel settings:
 
 - Root directory: `frontend`
 - Framework preset: `Vite`
@@ -128,7 +112,7 @@ npm run build
 dist
 ```
 
-The frontend `prebuild` script builds `../shared` first, so do not use `npm run build -w shared && npm run build -w frontend` when Vercel's root directory is already `frontend`.
+The frontend `prebuild` hook builds `../shared` first.
 
 Environment variables:
 
@@ -147,17 +131,17 @@ You can host both parts on Render:
 
 Frontend Render settings:
 
-- Root directory: repository root
+- Root directory: `frontend`
 - Build command:
 
 ```bash
-npm install && npm run build -w shared && npm run build -w frontend
+npm install && npm run build
 ```
 
 - Publish directory:
 
 ```text
-frontend/dist
+dist
 ```
 
 - Environment variable:
@@ -173,4 +157,3 @@ Then set the frontend Render URL as `FRONTEND_ORIGIN` on the backend service and
 - Render free web services can spin down after idle time. The first request after that can be slow.
 - The backend cache is in memory. It resets when the server restarts.
 - `FRONTEND_ORIGIN` accepts a comma-separated list if you need multiple frontend domains. In local development, include both `http://localhost:5173` and `http://127.0.0.1:5173` if you use both hosts.
-- `shared/` must be built before starting production backend or building the frontend.
