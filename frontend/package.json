@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 5173",
+    "prebuild": "npm --prefix ../shared run build",
     "build": "tsc -p tsconfig.json && vite build",
     "preview": "vite preview --host 0.0.0.0 --port 5173",
     "typecheck": "tsc -p tsconfig.json --noEmit"

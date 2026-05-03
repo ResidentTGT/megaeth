@@ -59,6 +59,8 @@ Manual Render settings:
 npm ci && npm run build -w shared && npm run build -w backend
 ```
 
+`backend` also has a `prebuild` hook that builds `../shared`, so `npm run build -w backend` remains safe if Render runs the backend workspace build command directly.
+
 - Start command:
 
 ```bash
@@ -94,7 +96,7 @@ https://your-backend.onrender.com
 
 Create a Vercel project from the same GitHub repository.
 
-Recommended Vercel settings:
+Recommended Vercel settings if the Vercel project root is the repository root:
 
 - Root directory: repository root
 - Framework preset: `Vite`
@@ -109,6 +111,24 @@ npm run build -w shared && npm run build -w frontend
 ```text
 frontend/dist
 ```
+
+Alternative Vercel settings if the Vercel project root is `frontend`:
+
+- Root directory: `frontend`
+- Framework preset: `Vite`
+- Build command:
+
+```bash
+npm run build
+```
+
+- Output directory:
+
+```text
+dist
+```
+
+The frontend `prebuild` script builds `../shared` first, so do not use `npm run build -w shared && npm run build -w frontend` when Vercel's root directory is already `frontend`.
 
 Environment variables:
 
