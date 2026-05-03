@@ -3,13 +3,18 @@ export const decodeNextFlight = (html: string) => {
   const pushRegex = /self\.__next_f\.push\(\[1,"((?:\\.|[^"\\])*)"\]\)/g;
 
   for (const match of html.matchAll(pushRegex)) {
-    chunks.push(JSON.parse(`"${match[1]}"`) as string);
+    const chunk = JSON.parse(`"${match[1]}"`);
+    if (typeof chunk !== "string") {
+      throw new Error("Next.js flight chunk is not a string");
+    }
+
+    chunks.push(chunk);
   }
 
   return chunks.join("");
 };
 
-export const extractJsonObject = <T>(text: string, key: string): T => {
+export const extractJsonObject = (text: string, key: string): unknown => {
   const keyIndex = text.indexOf(`"${key}":`);
   if (keyIndex === -1) {
     throw new Error(`Cannot find "${key}" in page payload`);
@@ -48,7 +53,7 @@ export const extractJsonObject = <T>(text: string, key: string): T => {
     if (char === "}") depth -= 1;
 
     if (depth === 0) {
-      return JSON.parse(text.slice(start, index + 1)) as T;
+      return JSON.parse(text.slice(start, index + 1));
     }
   }
 

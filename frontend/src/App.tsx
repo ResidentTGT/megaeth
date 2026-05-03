@@ -1,119 +1,20 @@
-import {
-  ArrowDown,
-  ArrowUp,
-  ArrowUpDown,
-  RefreshCcw,
-  Search,
-} from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { fetchLeaderboard } from "./api";
-import type { LeaderboardEntry, LeaderboardResponse } from "./types";
+import { Search } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { LeaderboardTable } from "./components/LeaderboardTable.js";
+import { Metrics } from "./components/Metrics.js";
+import { Pagination } from "./components/Pagination.js";
+import { Toolbar } from "./components/Toolbar.js";
+import { numberFormatter } from "./format.js";
+import { useLeaderboard } from "./hooks/useLeaderboard.js";
+import { sortEntries, type SortKey, type SortState } from "./sort.js";
 
-type SortKey =
-  | "rank"
-  | "mainWalletAddress"
-  | "xAccount"
-  | "totalPoints"
-  | "weeklyPointsChange";
-
-type SortDirection = "asc" | "desc";
-
-type SortState = {
-  key: SortKey;
-  direction: SortDirection;
-};
-
-const columns: Array<{ key: SortKey; label: string; numeric?: boolean }> = [
-  { key: "rank", label: "Rank", numeric: true },
-  { key: "mainWalletAddress", label: "Wallet" },
-  { key: "xAccount", label: "X Account" },
-  { key: "totalPoints", label: "Total Points", numeric: true },
-  { key: "weeklyPointsChange", label: "Weekly Change", numeric: true },
-];
-
-const numberFormatter = new Intl.NumberFormat("en-US");
-const averageFormatter = new Intl.NumberFormat("en-US", {
-  maximumFractionDigits: 2,
-});
-
-const compareValues = (
-  left: LeaderboardEntry,
-  right: LeaderboardEntry,
-  sort: SortState
-) => {
-  const leftValue = left[sort.key];
-  const rightValue = right[sort.key];
-
-  if (typeof leftValue === "number" && typeof rightValue === "number") {
-    return leftValue - rightValue;
-  }
-
-  return String(leftValue ?? "").localeCompare(String(rightValue ?? ""), undefined, {
-    numeric: true,
-    sensitivity: "base",
-  });
-};
-
-const SortIcon = ({ sort, column }: { sort: SortState; column: SortKey }) => {
-  if (sort.key !== column) {
-    return <ArrowUpDown size={14} aria-hidden="true" />;
-  }
-
-  return sort.direction === "asc" ? (
-    <ArrowUp size={14} aria-hidden="true" />
-  ) : (
-    <ArrowDown size={14} aria-hidden="true" />
-  );
-};
-
-const formatUpdatedAt = (value?: string) => {
-  if (!value) return "-";
-
-  return new Intl.DateTimeFormat("en-US", {
-    dateStyle: "medium",
-    timeStyle: "medium",
-  }).format(new Date(value));
-};
+const PAGE_SIZE = 100;
 
 export default function App() {
-  const [leaderboard, setLeaderboard] = useState<LeaderboardResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { error, isLoading, leaderboard, reload } = useLeaderboard();
   const [walletQuery, setWalletQuery] = useState("");
   const [sort, setSort] = useState<SortState>({ key: "rank", direction: "asc" });
-
-  const loadLeaderboard = useCallback(async (signal?: AbortSignal) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetchLeaderboard(signal);
-      setLeaderboard(response);
-    } catch (unknownError) {
-      if (unknownError instanceof DOMException && unknownError.name === "AbortError") {
-        return;
-      }
-
-      setError(
-        unknownError instanceof Error
-          ? unknownError.message
-          : "Failed to load leaderboard"
-      );
-    } finally {
-      if (!signal?.aborted) {
-        setIsLoading(false);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    void loadLeaderboard(controller.signal);
-
-    return () => {
-      controller.abort();
-    };
-  }, [loadLeaderboard]);
+  const [page, setPage] = useState(1);
 
   const rows = useMemo(() => {
     const query = walletQuery.trim().toLowerCase();
@@ -124,29 +25,20 @@ export default function App() {
       return entry.mainWalletAddress.toLowerCase().includes(query);
     });
 
-    return [...filteredEntries].sort((left, right) => {
-      const result = compareValues(left, right, sort);
-      return sort.direction === "asc" ? result : -result;
-    });
+    return sortEntries(filteredEntries, sort);
   }, [leaderboard, sort, walletQuery]);
 
-  const stats = useMemo(() => {
-    if (!leaderboard) return null;
-    if (leaderboard.stats) return leaderboard.stats;
+  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
 
-    const totalPointsSum = leaderboard.entries.reduce(
-      (sum, entry) => sum + entry.totalPoints,
-      0
-    );
+  const visibleRows = useMemo(() => {
+    const startIndex = (currentPage - 1) * PAGE_SIZE;
+    return rows.slice(startIndex, startIndex + PAGE_SIZE);
+  }, [currentPage, rows]);
 
-    return {
-      entriesCount: leaderboard.entries.length,
-      totalPointsSum,
-      averageTotalPoints: leaderboard.entries.length
-        ? totalPointsSum / leaderboard.entries.length
-        : 0,
-    };
-  }, [leaderboard]);
+  useEffect(() => {
+    setPage(1);
+  }, [sort, walletQuery]);
 
   const toggleSort = (key: SortKey) => {
     setSort((current) => {
@@ -161,6 +53,10 @@ export default function App() {
     });
   };
 
+  const changePage = (nextPage: number) => {
+    setPage(Math.min(Math.max(nextPage, 1), totalPages));
+  };
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -173,46 +69,13 @@ export default function App() {
       </aside>
 
       <main className="content">
-        <header className="toolbar">
-          <div>
-            <h1>Leaderboard</h1>
-            <p>
-              {leaderboard ? numberFormatter.format(leaderboard.entries.length) : "-"}{" "}
-              entries - Updated {formatUpdatedAt(leaderboard?.updatedAt)}
-            </p>
-          </div>
+        <Toolbar
+          isLoading={isLoading}
+          leaderboard={leaderboard}
+          onRefresh={() => void reload()}
+        />
 
-          <button
-            className="refresh-button"
-            type="button"
-            onClick={() => void loadLeaderboard()}
-            disabled={isLoading}
-          >
-            <RefreshCcw size={16} aria-hidden="true" />
-            Refresh
-          </button>
-        </header>
-
-        <section className="metrics" aria-label="Leaderboard summary">
-          <div className="metric">
-            <span className="metric-label">Entries</span>
-            <strong>
-              {stats ? numberFormatter.format(stats.entriesCount) : "-"}
-            </strong>
-          </div>
-          <div className="metric">
-            <span className="metric-label">Total Points</span>
-            <strong>
-              {stats ? numberFormatter.format(stats.totalPointsSum) : "-"}
-            </strong>
-          </div>
-          <div className="metric">
-            <span className="metric-label">Average Points</span>
-            <strong>
-              {stats ? averageFormatter.format(stats.averageTotalPoints) : "-"}
-            </strong>
-          </div>
-        </section>
+        <Metrics stats={leaderboard?.stats ?? null} />
 
         <section className="controls" aria-label="Leaderboard controls">
           <label className="search-field">
@@ -235,45 +98,19 @@ export default function App() {
           </div>
         ) : null}
 
-        <section className="table-wrap" aria-label="Leaderboard table">
-          {isLoading && !leaderboard ? (
-            <div className="state-message">Loading leaderboard...</div>
-          ) : (
-            <table>
-              <thead>
-                <tr>
-                  {columns.map((column) => (
-                    <th key={column.key} className={column.numeric ? "numeric" : ""}>
-                      <button
-                        className="sort-button"
-                        type="button"
-                        onClick={() => toggleSort(column.key)}
-                      >
-                        <span>{column.label}</span>
-                        <SortIcon sort={sort} column={column.key} />
-                      </button>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((entry) => (
-                  <tr key={`${entry.rank}-${entry.mainWalletAddress}`}>
-                    <td className="numeric">#{entry.rank}</td>
-                    <td className="wallet-cell">{entry.mainWalletAddress}</td>
-                    <td>{entry.xAccount ? `@${entry.xAccount}` : "-"}</td>
-                    <td className="numeric">
-                      {numberFormatter.format(entry.totalPoints)}
-                    </td>
-                    <td className="numeric">
-                      {numberFormatter.format(entry.weeklyPointsChange)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </section>
+        <LeaderboardTable
+          isInitialLoading={isLoading && !leaderboard}
+          rows={visibleRows}
+          sort={sort}
+          onSort={toggleSort}
+        />
+
+        <Pagination
+          currentPage={currentPage}
+          pageSize={PAGE_SIZE}
+          totalRows={rows.length}
+          onPageChange={changePage}
+        />
       </main>
     </div>
   );

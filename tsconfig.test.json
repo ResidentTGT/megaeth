@@ -7,16 +7,24 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
+    "jsx": "react-jsx",
+    "outDir": ".test-dist",
+    "rootDir": ".",
     "types": [
       "node"
-    ],
-    "outDir": "dist",
-    "rootDir": "src"
+    ]
   },
   "include": [
-    "src/**/*.ts"
+    "scripts/**/*.ts",
+    "shared/src/**/*.ts",
+    "backend/src/**/*.ts",
+    "frontend/src/**/*.ts",
+    "frontend/src/**/*.tsx"
   ],
   "exclude": [
-    "src/**/*.test.ts"
+    "node_modules",
+    "backend/dist",
+    "frontend/dist",
+    "shared/dist"
   ]
 }

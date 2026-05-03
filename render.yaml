@@ -3,13 +3,23 @@ services:
     runtime: node
     name: megaeth
     plan: free
-    buildCommand: npm ci && npm run build -w backend
+    buildCommand: npm ci && npm run build -w shared && npm run build -w backend
     startCommand: npm run start -w backend
     healthCheckPath: /health
     envVars:
       - key: NODE_VERSION
         value: 22.13.1
+      - key: LEADERBOARD_URL
+        value: https://terminal.megaeth.com/leaderboard
       - key: LEADERBOARD_CACHE_TTL_MS
         value: 60000
+      - key: LEADERBOARD_STALE_TTL_MS
+        value: 300000
+      - key: LEADERBOARD_FETCH_TIMEOUT_MS
+        value: 10000
+      - key: LEADERBOARD_FETCH_ATTEMPTS
+        value: 3
+      - key: LEADERBOARD_RETRY_BASE_DELAY_MS
+        value: 250
       - key: FRONTEND_ORIGIN
         sync: false

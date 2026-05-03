@@ -1,11 +1,12 @@
 # MegaETH Leaderboard
 
-Two-project app for viewing the MegaETH leaderboard:
+Workspace app for viewing the MegaETH leaderboard:
 
+- `shared/` - shared TypeScript API contract and runtime validators.
 - `backend/` - Fastify + TypeScript API.
 - `frontend/` - Vite + React + TypeScript UI.
 
-The backend fetches the full leaderboard from `https://terminal.megaeth.com/leaderboard`, parses the embedded Next.js payload, caches the result in memory for 60 seconds, and exposes it through `GET /leaderboard`.
+The backend fetches the full leaderboard from `https://terminal.megaeth.com/leaderboard`, parses the embedded Next.js payload, validates it, caches the result in memory for 60 seconds, and exposes it through `GET /leaderboard`. If the source is temporarily unavailable, the backend can serve stale cached data for the configured stale window.
 
 ## Local Development
 
@@ -31,7 +32,9 @@ Local URLs:
 
 ```bash
 npm run typecheck
+npm run test
 npm run build
+npm run verify
 ```
 
 ## Deploy Option A: Render Backend + Vercel Frontend
@@ -53,7 +56,7 @@ Manual Render settings:
 - Build command:
 
 ```bash
-npm ci && npm run build -w backend
+npm ci && npm run build -w shared && npm run build -w backend
 ```
 
 - Start command:
@@ -72,7 +75,12 @@ Environment variables:
 
 ```text
 NODE_VERSION=22.13.1
+LEADERBOARD_URL=https://terminal.megaeth.com/leaderboard
 LEADERBOARD_CACHE_TTL_MS=60000
+LEADERBOARD_STALE_TTL_MS=300000
+LEADERBOARD_FETCH_TIMEOUT_MS=10000
+LEADERBOARD_FETCH_ATTEMPTS=3
+LEADERBOARD_RETRY_BASE_DELAY_MS=250
 FRONTEND_ORIGIN=https://your-frontend-domain.vercel.app
 ```
 
@@ -88,18 +96,18 @@ Create a Vercel project from the same GitHub repository.
 
 Recommended Vercel settings:
 
-- Root directory: `frontend`
+- Root directory: repository root
 - Framework preset: `Vite`
 - Build command:
 
 ```bash
-npm run build
+npm run build -w shared && npm run build -w frontend
 ```
 
 - Output directory:
 
 ```text
-dist
+frontend/dist
 ```
 
 Environment variables:
@@ -119,17 +127,17 @@ You can host both parts on Render:
 
 Frontend Render settings:
 
-- Root directory: `frontend`
+- Root directory: repository root
 - Build command:
 
 ```bash
-npm install && npm run build
+npm install && npm run build -w shared && npm run build -w frontend
 ```
 
 - Publish directory:
 
 ```text
-dist
+frontend/dist
 ```
 
 - Environment variable:
@@ -144,4 +152,5 @@ Then set the frontend Render URL as `FRONTEND_ORIGIN` on the backend service and
 
 - Render free web services can spin down after idle time. The first request after that can be slow.
 - The backend cache is in memory. It resets when the server restarts.
-- `FRONTEND_ORIGIN` accepts a comma-separated list if you need multiple frontend domains.
+- `FRONTEND_ORIGIN` accepts a comma-separated list if you need multiple frontend domains. In local development, include both `http://localhost:5173` and `http://127.0.0.1:5173` if you use both hosts.
+- `shared/` must be built before starting production backend or building the frontend.

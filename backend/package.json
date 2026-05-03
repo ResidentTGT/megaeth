@@ -10,6 +10,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@megaeth-leaderboard/shared": "file:../shared",
     "@fastify/cors": "^10.1.0",
     "fastify": "^5.3.0"
   },

@@ -118,6 +118,23 @@ p {
   background: #26322d;
 }
 
+.icon-button {
+  display: inline-flex;
+  width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #35443d;
+  border-radius: 8px;
+  background: #202825;
+  color: #eef3ef;
+  padding: 0;
+}
+
+.icon-button:hover:not(:disabled) {
+  background: #26322d;
+}
+
 .metrics {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -207,7 +224,7 @@ p {
 .table-wrap {
   width: 100%;
   max-width: 100%;
-  max-height: calc(100vh - 292px);
+  max-height: calc(100vh - 346px);
   overflow: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
@@ -278,6 +295,22 @@ tbody tr:last-child td {
   color: #dfeae3;
 }
 
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  color: #94a39a;
+  font-size: 14px;
+  padding: 12px 0 0;
+}
+
+.pagination-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
 @media (max-width: 840px) {
   .app-shell {
     grid-template-columns: 1fr;
@@ -305,7 +338,7 @@ tbody tr:last-child td {
   }
 
   .table-wrap {
-    max-height: calc(100vh - 372px);
+    max-height: calc(100vh - 438px);
   }
 
   .toolbar,
@@ -320,5 +353,14 @@ tbody tr:last-child td {
 
   .result-count {
     white-space: normal;
+  }
+
+  .pagination {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .pagination-actions {
+    justify-content: space-between;
   }
 }
