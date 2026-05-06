@@ -1,13 +1,14 @@
 import Alert from "@mui/material/Alert";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
-import Chip from "@mui/material/Chip";
+import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import TextField from "@mui/material/TextField";
 import MuiToolbar from "@mui/material/Toolbar";
+import Typography from "@mui/material/Typography";
 import { useEffect, useMemo, useState } from "react";
 import {
   Link as RouterLink,
@@ -19,8 +20,7 @@ import {
 import { LeaderboardTable } from "./components/LeaderboardTable.js";
 import { Metrics } from "./components/Metrics.js";
 import { Pagination } from "./components/Pagination.js";
-import { Toolbar } from "./components/Toolbar.js";
-import { numberFormatter } from "./format.js";
+import { formatUpdatedAt } from "./format.js";
 import { useLeaderboard } from "./hooks/useLeaderboard.js";
 import { sortEntries, type SortKey, type SortState } from "./sort.js";
 
@@ -162,18 +162,12 @@ const LeaderboardPage = () => {
   };
 
   return (
-    <Stack sx={{ height: "100%", minHeight: 0 }} spacing={{ xs: 1.75, md: 2.25 }}>
-      <Toolbar
-        isLoading={isLoading}
-        leaderboard={leaderboard}
-        onRefresh={() => void reload()}
-      />
-
+    <Stack sx={{ height: "100%", minHeight: 0 }} spacing={{ xs: 1.25, md: 1.75 }}>
       <Metrics stats={leaderboard?.stats ?? null} />
 
       <Stack
         direction={{ xs: "column", md: "row" }}
-        spacing={2}
+        spacing={{ xs: 1, md: 2 }}
         sx={{
           alignItems: { xs: "stretch", md: "center" },
           justifyContent: "space-between",
@@ -187,12 +181,38 @@ const LeaderboardPage = () => {
           onChange={(event) => setWalletQuery(event.target.value)}
           sx={{ width: { xs: "100%", md: 440 } }}
         />
-        <Chip
-          label={`Showing ${numberFormatter.format(rows.length)} rows`}
-          color="primary"
-          variant="outlined"
-          sx={{ alignSelf: { xs: "flex-start", md: "center" } }}
-        />
+        <Stack
+          direction={{ xs: "row", sm: "row" }}
+          spacing={1.25}
+          sx={{
+            alignItems: "center",
+            justifyContent: { xs: "space-between", md: "flex-end" },
+            minWidth: { md: 320 },
+          }}
+        >
+          <Typography
+            color="text.secondary"
+            variant="body2"
+            sx={{
+              minWidth: 0,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {formatUpdatedAt(leaderboard?.updatedAt)}
+            {leaderboard?.cache?.status === "stale" ? " - cached" : ""}
+          </Typography>
+          <Button
+            type="button"
+            variant="outlined"
+            onClick={() => void reload()}
+            disabled={isLoading}
+            sx={{ flexShrink: 0 }}
+          >
+            Refresh
+          </Button>
+        </Stack>
       </Stack>
 
       {error ? <Alert severity="error">{error}</Alert> : null}
