@@ -1,4 +1,6 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import MuiPagination from "@mui/material/Pagination";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 import { numberFormatter } from "../format.js";
 
 type PaginationProps = {
@@ -19,35 +21,28 @@ export const Pagination = ({
   const lastRow = Math.min(currentPage * pageSize, totalRows);
 
   return (
-    <div className="pagination" aria-label="Leaderboard pagination">
-      <span>
+    <Stack
+      direction={{ xs: "column", sm: "row" }}
+      spacing={2}
+      aria-label="Leaderboard pagination"
+      sx={{
+        alignItems: { xs: "center", sm: "center" },
+        justifyContent: "space-between",
+      }}
+    >
+      <Typography color="text.secondary" variant="body2">
         {numberFormatter.format(firstRow)}-{numberFormatter.format(lastRow)} of{" "}
         {numberFormatter.format(totalRows)}
-      </span>
-      <div className="pagination-actions">
-        <button
-          className="icon-button"
-          type="button"
-          aria-label="Previous page"
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage <= 1}
-        >
-          <ChevronLeft size={16} aria-hidden="true" />
-        </button>
-        <span>
-          {numberFormatter.format(currentPage)} /{" "}
-          {numberFormatter.format(totalPages)}
-        </span>
-        <button
-          className="icon-button"
-          type="button"
-          aria-label="Next page"
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage >= totalPages}
-        >
-          <ChevronRight size={16} aria-hidden="true" />
-        </button>
-      </div>
-    </div>
+      </Typography>
+      <MuiPagination
+        count={totalPages}
+        page={currentPage}
+        color="primary"
+        shape="rounded"
+        onChange={(_, page) => onPageChange(page)}
+        siblingCount={0}
+        boundaryCount={1}
+      />
+    </Stack>
   );
 };
