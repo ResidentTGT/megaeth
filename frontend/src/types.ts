@@ -1,4 +1,7 @@
 export type {
+  AppsResponse,
+  AppSuggestedAction,
+  EcosystemApp,
   LeaderboardCacheInfo,
   LeaderboardEntry,
   LeaderboardResponse,

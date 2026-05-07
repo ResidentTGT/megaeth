@@ -33,6 +33,49 @@ export type LeaderboardResponse = {
   cache?: LeaderboardCacheInfo;
 };
 
+export type AppSuggestedAction = {
+  icon: string;
+  description: string;
+  link: string;
+};
+
+export type EcosystemApp = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  logoUrl: string | null;
+  imageUrl: string | null;
+  websiteUrl: string | null;
+  redirectUrls: string[];
+  categories: string[];
+  metadata: {
+    x?: number;
+    y?: number;
+  };
+  suggestedActions: AppSuggestedAction[];
+  clientId: string | null;
+  status: string;
+  activeUntil: string | null;
+  comingSoon: boolean;
+  isLiveSoon: boolean;
+  liveSoonAt: string | null;
+  rabbitholeProjectId: number | null;
+  gallery: string[];
+  twitter: string | null;
+  telegram: string | null;
+  discord: string | null;
+  github: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AppsResponse = {
+  updatedAt: string;
+  apps: EcosystemApp[];
+  cache?: LeaderboardCacheInfo;
+};
+
 export class LeaderboardValidationError extends Error {
   constructor(message: string) {
     super(message);
@@ -83,6 +126,32 @@ const readFiniteNumber = (value: unknown, path: string) => {
   }
 
   return value as number;
+};
+
+const readBoolean = (value: unknown, path: string) => {
+  if (typeof value !== "boolean") {
+    fail(path, "a boolean");
+  }
+
+  return value as boolean;
+};
+
+const readNullableString = (value: unknown, path: string) => {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  return readString(value, path, true);
+};
+
+const readStringArray = (value: unknown, path: string) => {
+  if (!Array.isArray(value)) {
+    fail(path, "an array");
+  }
+
+  return (value as unknown[]).map((item, index) =>
+    readString(item, `${path}[${index}]`, true)
+  );
 };
 
 const readEntry = (value: unknown, path: string): LeaderboardEntry => {
@@ -178,6 +247,93 @@ const readCacheInfo = (value: unknown): LeaderboardCacheInfo => {
   };
 };
 
+const readMetadata = (value: unknown, path: string): EcosystemApp["metadata"] => {
+  const metadata = readRecord(value, path);
+  const result: EcosystemApp["metadata"] = {};
+
+  if (metadata.x !== undefined && metadata.x !== null) {
+    result.x = readFiniteNumber(metadata.x, `${path}.x`);
+  }
+
+  if (metadata.y !== undefined && metadata.y !== null) {
+    result.y = readFiniteNumber(metadata.y, `${path}.y`);
+  }
+
+  return result;
+};
+
+const readSuggestedAction = (
+  value: unknown,
+  path: string
+): AppSuggestedAction => {
+  const action = readRecord(value, path);
+
+  return {
+    icon: readString(action.icon, `${path}.icon`, true),
+    description: readString(action.description, `${path}.description`, true),
+    link: readString(action.link, `${path}.link`, true),
+  };
+};
+
+const readSuggestedActions = (value: unknown, path: string) => {
+  if (!Array.isArray(value)) {
+    fail(path, "an array");
+  }
+
+  return (value as unknown[]).map((item, index) =>
+    readSuggestedAction(item, `${path}[${index}]`)
+  );
+};
+
+const readApp = (value: unknown, path: string): EcosystemApp => {
+  const app = readRecord(value, path);
+
+  return {
+    id: readString(app.id, `${path}.id`),
+    name: readString(app.name, `${path}.name`),
+    slug: readString(app.slug, `${path}.slug`),
+    description: readString(app.description, `${path}.description`, true),
+    logoUrl: readNullableString(app.logoUrl, `${path}.logoUrl`),
+    imageUrl: readNullableString(app.imageUrl, `${path}.imageUrl`),
+    websiteUrl: readNullableString(app.websiteUrl, `${path}.websiteUrl`),
+    redirectUrls: readStringArray(app.redirectUrls, `${path}.redirectUrls`),
+    categories: readStringArray(app.categories, `${path}.categories`),
+    metadata: readMetadata(app.metadata ?? {}, `${path}.metadata`),
+    suggestedActions: readSuggestedActions(
+      app.suggestedActions,
+      `${path}.suggestedActions`
+    ),
+    clientId: readNullableString(app.clientId, `${path}.clientId`),
+    status: readString(app.status, `${path}.status`, true),
+    activeUntil: readNullableString(app.activeUntil, `${path}.activeUntil`),
+    comingSoon: readBoolean(app.comingSoon, `${path}.comingSoon`),
+    isLiveSoon: readBoolean(app.isLiveSoon, `${path}.isLiveSoon`),
+    liveSoonAt: readNullableString(app.liveSoonAt, `${path}.liveSoonAt`),
+    rabbitholeProjectId:
+      app.rabbitholeProjectId === null || app.rabbitholeProjectId === undefined
+        ? null
+        : readFiniteNumber(
+            app.rabbitholeProjectId,
+            `${path}.rabbitholeProjectId`
+          ),
+    gallery: readStringArray(app.gallery, `${path}.gallery`),
+    twitter: readNullableString(app.twitter, `${path}.twitter`),
+    telegram: readNullableString(app.telegram, `${path}.telegram`),
+    discord: readNullableString(app.discord, `${path}.discord`),
+    github: readNullableString(app.github, `${path}.github`),
+    createdAt: readDateString(app.createdAt, `${path}.createdAt`),
+    updatedAt: readDateString(app.updatedAt, `${path}.updatedAt`),
+  };
+};
+
+export const parseAppsPayload = (value: unknown) => {
+  if (!Array.isArray(value)) {
+    fail("apps", "an array");
+  }
+
+  return (value as unknown[]).map((app, index) => readApp(app, `apps[${index}]`));
+};
+
 export const parseLeaderboardResponse = (value: unknown): LeaderboardResponse => {
   const response = readRecord(value, "response");
 
@@ -185,6 +341,19 @@ export const parseLeaderboardResponse = (value: unknown): LeaderboardResponse =>
     updatedAt: readDateString(response.updatedAt, "response.updatedAt"),
     stats: readStats(response.stats),
     entries: readEntries(response.entries, "response.entries"),
+    cache:
+      response.cache === undefined || response.cache === null
+        ? undefined
+        : readCacheInfo(response.cache),
+  };
+};
+
+export const parseAppsResponse = (value: unknown): AppsResponse => {
+  const response = readRecord(value, "response");
+
+  return {
+    updatedAt: readDateString(response.updatedAt, "response.updatedAt"),
+    apps: parseAppsPayload(response.apps),
     cache:
       response.cache === undefined || response.cache === null
         ? undefined

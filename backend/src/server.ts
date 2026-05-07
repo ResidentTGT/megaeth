@@ -1,5 +1,6 @@
 import cors from "@fastify/cors";
 import Fastify from "fastify";
+import { getApps } from "./appsService.js";
 import { getConfig } from "./config.js";
 import { getLeaderboard } from "./leaderboardService.js";
 
@@ -24,6 +25,17 @@ app.get("/leaderboard", async (request, reply) => {
     request.log.error({ err: error }, "failed to serve leaderboard");
     return reply.code(502).send({
       error: "Unable to load leaderboard",
+    });
+  }
+});
+
+app.get("/apps", async (request, reply) => {
+  try {
+    return await getApps(config);
+  } catch (error) {
+    request.log.error({ err: error }, "failed to serve apps");
+    return reply.code(502).send({
+      error: "Unable to load apps",
     });
   }
 });

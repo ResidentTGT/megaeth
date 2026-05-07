@@ -1,4 +1,5 @@
 const DEFAULT_LEADERBOARD_URL = "https://terminal.megaeth.com/leaderboard";
+const DEFAULT_APPS_URL = "https://terminal.megaeth.com/";
 const DEFAULT_FRONTEND_ORIGINS =
   "http://localhost:5173,http://127.0.0.1:5173";
 
@@ -7,7 +8,9 @@ export type AppConfig = {
   host: string;
   frontendOrigins: string[];
   leaderboardUrl: string;
+  appsUrl: string;
   leaderboardCacheTtlMs: number;
+  appsCacheTtlMs: number;
   leaderboardStaleTtlMs: number;
   leaderboardFetchTimeoutMs: number;
   leaderboardFetchAttempts: number;
@@ -118,7 +121,12 @@ export const loadConfig = (env: NodeJS.ProcessEnv = process.env): AppConfig => (
   host: readString(env, "HOST", "0.0.0.0"),
   frontendOrigins: readOrigins(env),
   leaderboardUrl: readUrl(env, "LEADERBOARD_URL", DEFAULT_LEADERBOARD_URL),
+  appsUrl: readUrl(env, "APPS_URL", DEFAULT_APPS_URL),
   leaderboardCacheTtlMs: readNumber(env, "LEADERBOARD_CACHE_TTL_MS", 60_000, {
+    integer: true,
+    min: 0,
+  }),
+  appsCacheTtlMs: readNumber(env, "APPS_CACHE_TTL_MS", 600_000, {
     integer: true,
     min: 0,
   }),

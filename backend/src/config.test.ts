@@ -6,6 +6,8 @@ test("loadConfig applies validated defaults", () => {
   const config = loadConfig({});
 
   assert.equal(config.port, 4000);
+  assert.equal(config.appsUrl, "https://terminal.megaeth.com/");
+  assert.equal(config.appsCacheTtlMs, 600_000);
   assert.equal(config.leaderboardFetchAttempts, 3);
   assert.deepEqual(config.frontendOrigins, [
     "http://localhost:5173",

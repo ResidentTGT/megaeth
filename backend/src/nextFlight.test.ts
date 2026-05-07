@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { decodeNextFlight, extractJsonObject } from "./nextFlight.js";
+import {
+  decodeNextFlight,
+  extractJsonArrayStartingWith,
+  extractJsonObject,
+} from "./nextFlight.js";
 
 const encodeChunk = (value: string) => JSON.stringify(value).slice(1, -1);
 
@@ -33,4 +37,16 @@ test("extractJsonObject fails when key is missing", () => {
     () => extractJsonObject('{"payload":{}}', "entries"),
     /Cannot find "entries"/
   );
+});
+
+test("extractJsonArrayStartingWith extracts the surrounding array", () => {
+  const result = extractJsonArrayStartingWith(
+    '{"other":[],"apps":[{"name":"One","items":[1,2]},{"name":"Two"}]}',
+    '"name":"Two"'
+  );
+
+  assert.deepEqual(result, [
+    { name: "One", items: [1, 2] },
+    { name: "Two" },
+  ]);
 });
