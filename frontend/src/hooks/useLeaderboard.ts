@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import { fetchLeaderboard } from "../api.js";
+import { fetchLeaderboard, type LeaderboardRequest } from "../api.js";
 import type { LeaderboardResponse } from "../types.js";
 
-export const useLeaderboard = () => {
+export const useLeaderboard = (request: LeaderboardRequest) => {
   const [leaderboard, setLeaderboard] = useState<LeaderboardResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -12,7 +12,7 @@ export const useLeaderboard = () => {
     setError(null);
 
     try {
-      const response = await fetchLeaderboard(signal);
+      const response = await fetchLeaderboard(request, signal);
       setLeaderboard(response);
     } catch (unknownError) {
       if (
@@ -32,7 +32,7 @@ export const useLeaderboard = () => {
         setIsLoading(false);
       }
     }
-  }, []);
+  }, [request]);
 
   useEffect(() => {
     const controller = new AbortController();

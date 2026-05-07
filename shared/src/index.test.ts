@@ -41,6 +41,12 @@ test("parseLeaderboardResponse accepts cache metadata", () => {
     updatedAt: "2026-05-03T00:00:00.000Z",
     stats,
     entries: [entry],
+    pagination: {
+      page: 1,
+      pageSize: 100,
+      totalRows: 1,
+      totalPages: 1,
+    },
     cache: {
       status: "fresh",
       fetchedAt: "2026-05-03T00:00:00.000Z",
@@ -50,6 +56,7 @@ test("parseLeaderboardResponse accepts cache metadata", () => {
   });
 
   assert.equal(response.stats.totalPointsSum, 100);
+  assert.equal(response.pagination?.totalRows, 1);
   assert.equal(response.cache?.status, "fresh");
 });
 
@@ -89,6 +96,50 @@ const app = {
 
 test("parseAppsPayload validates app fields", () => {
   assert.deepEqual(parseAppsPayload([app]), [app]);
+});
+
+test("parseAppsPayload accepts safe custom redirect schemes", () => {
+  const response = parseAppsPayload([
+    {
+      ...app,
+      redirectUrls: ["cards.nextrare.app://terminal-auth"],
+    },
+  ]);
+
+  assert.equal(
+    response[0]?.redirectUrls[0],
+    "cards.nextrare.app://terminal-auth"
+  );
+});
+
+test("parseAppsPayload rejects unsafe app URLs", () => {
+  assert.throws(
+    () =>
+      parseAppsPayload([
+        {
+          ...app,
+          suggestedActions: [
+            {
+              icon: "Globe",
+              description: "Unsafe action",
+              link: "javascript:alert(1)",
+            },
+          ],
+        },
+      ]),
+    /apps\[0\]\.suggestedActions\[0\]\.link must be/
+  );
+
+  assert.throws(
+    () =>
+      parseAppsPayload([
+        {
+          ...app,
+          redirectUrls: ["javascript:alert(1)"],
+        },
+      ]),
+    /apps\[0\]\.redirectUrls\[0\] must be/
+  );
 });
 
 test("parseAppsResponse accepts cache metadata", () => {

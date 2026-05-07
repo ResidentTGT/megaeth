@@ -17,6 +17,15 @@ export type LeaderboardStats = {
   averageTotalPoints: number;
 };
 
+export type LeaderboardSortKey =
+  | "rank"
+  | "mainWalletAddress"
+  | "xAccount"
+  | "totalPoints"
+  | "weeklyPointsChange";
+
+export type SortDirection = "asc" | "desc";
+
 export type LeaderboardCacheStatus = "fresh" | "stale";
 
 export type LeaderboardCacheInfo = {
@@ -30,7 +39,15 @@ export type LeaderboardResponse = {
   updatedAt: string;
   stats: LeaderboardStats;
   entries: LeaderboardEntry[];
+  pagination?: LeaderboardPagination;
   cache?: LeaderboardCacheInfo;
+};
+
+export type LeaderboardPagination = {
+  page: number;
+  pageSize: number;
+  totalRows: number;
+  totalPages: number;
 };
 
 export type AppSuggestedAction = {
@@ -120,6 +137,37 @@ const readDateString = (value: unknown, path: string) => {
   return date;
 };
 
+const unsafeUrlProtocols = new Set(["javascript:", "data:", "vbscript:"]);
+
+const validateUrl = (
+  value: string,
+  path: string,
+  options: { httpOnly: boolean }
+) => {
+  const text = value.trim();
+
+  try {
+    const url = new URL(text);
+    if (unsafeUrlProtocols.has(url.protocol)) {
+      fail(path, "a safe URL");
+    }
+
+    if (options.httpOnly && url.protocol !== "http:" && url.protocol !== "https:") {
+      fail(path, "an HTTP(S) URL");
+    }
+  } catch {
+    fail(path, options.httpOnly ? "a valid HTTP(S) URL" : "a valid safe URL");
+  }
+
+  return text;
+};
+
+const readUrlString = (value: unknown, path: string) =>
+  validateUrl(readString(value, path), path, { httpOnly: true });
+
+const readSafeUrlString = (value: unknown, path: string) =>
+  validateUrl(readString(value, path), path, { httpOnly: false });
+
 const readFiniteNumber = (value: unknown, path: string) => {
   if (typeof value !== "number" || !Number.isFinite(value)) {
     fail(path, "a finite number");
@@ -144,6 +192,15 @@ const readNullableString = (value: unknown, path: string) => {
   return readString(value, path, true);
 };
 
+const readNullableUrlString = (value: unknown, path: string) => {
+  const text = readNullableString(value, path);
+  if (text === null || text.trim().length === 0) {
+    return null;
+  }
+
+  return validateUrl(text, path, { httpOnly: true });
+};
+
 const readStringArray = (value: unknown, path: string) => {
   if (!Array.isArray(value)) {
     fail(path, "an array");
@@ -151,6 +208,26 @@ const readStringArray = (value: unknown, path: string) => {
 
   return (value as unknown[]).map((item, index) =>
     readString(item, `${path}[${index}]`, true)
+  );
+};
+
+const readUrlStringArray = (value: unknown, path: string) => {
+  if (!Array.isArray(value)) {
+    fail(path, "an array");
+  }
+
+  return (value as unknown[]).map((item, index) =>
+    readUrlString(item, `${path}[${index}]`)
+  );
+};
+
+const readSafeUrlStringArray = (value: unknown, path: string) => {
+  if (!Array.isArray(value)) {
+    fail(path, "an array");
+  }
+
+  return (value as unknown[]).map((item, index) =>
+    readSafeUrlString(item, `${path}[${index}]`)
   );
 };
 
@@ -247,6 +324,26 @@ const readCacheInfo = (value: unknown): LeaderboardCacheInfo => {
   };
 };
 
+const readPagination = (value: unknown): LeaderboardPagination => {
+  const pagination = readRecord(value, "response.pagination");
+
+  return {
+    page: readFiniteNumber(pagination.page, "response.pagination.page"),
+    pageSize: readFiniteNumber(
+      pagination.pageSize,
+      "response.pagination.pageSize"
+    ),
+    totalRows: readFiniteNumber(
+      pagination.totalRows,
+      "response.pagination.totalRows"
+    ),
+    totalPages: readFiniteNumber(
+      pagination.totalPages,
+      "response.pagination.totalPages"
+    ),
+  };
+};
+
 const readMetadata = (value: unknown, path: string): EcosystemApp["metadata"] => {
   const metadata = readRecord(value, path);
   const result: EcosystemApp["metadata"] = {};
@@ -271,7 +368,7 @@ const readSuggestedAction = (
   return {
     icon: readString(action.icon, `${path}.icon`, true),
     description: readString(action.description, `${path}.description`, true),
-    link: readString(action.link, `${path}.link`, true),
+    link: readUrlString(action.link, `${path}.link`),
   };
 };
 
@@ -293,10 +390,10 @@ const readApp = (value: unknown, path: string): EcosystemApp => {
     name: readString(app.name, `${path}.name`),
     slug: readString(app.slug, `${path}.slug`),
     description: readString(app.description, `${path}.description`, true),
-    logoUrl: readNullableString(app.logoUrl, `${path}.logoUrl`),
-    imageUrl: readNullableString(app.imageUrl, `${path}.imageUrl`),
-    websiteUrl: readNullableString(app.websiteUrl, `${path}.websiteUrl`),
-    redirectUrls: readStringArray(app.redirectUrls, `${path}.redirectUrls`),
+    logoUrl: readNullableUrlString(app.logoUrl, `${path}.logoUrl`),
+    imageUrl: readNullableUrlString(app.imageUrl, `${path}.imageUrl`),
+    websiteUrl: readNullableUrlString(app.websiteUrl, `${path}.websiteUrl`),
+    redirectUrls: readSafeUrlStringArray(app.redirectUrls, `${path}.redirectUrls`),
     categories: readStringArray(app.categories, `${path}.categories`),
     metadata: readMetadata(app.metadata ?? {}, `${path}.metadata`),
     suggestedActions: readSuggestedActions(
@@ -316,11 +413,11 @@ const readApp = (value: unknown, path: string): EcosystemApp => {
             app.rabbitholeProjectId,
             `${path}.rabbitholeProjectId`
           ),
-    gallery: readStringArray(app.gallery, `${path}.gallery`),
-    twitter: readNullableString(app.twitter, `${path}.twitter`),
-    telegram: readNullableString(app.telegram, `${path}.telegram`),
-    discord: readNullableString(app.discord, `${path}.discord`),
-    github: readNullableString(app.github, `${path}.github`),
+    gallery: readUrlStringArray(app.gallery, `${path}.gallery`),
+    twitter: readNullableUrlString(app.twitter, `${path}.twitter`),
+    telegram: readNullableUrlString(app.telegram, `${path}.telegram`),
+    discord: readNullableUrlString(app.discord, `${path}.discord`),
+    github: readNullableUrlString(app.github, `${path}.github`),
     createdAt: readDateString(app.createdAt, `${path}.createdAt`),
     updatedAt: readDateString(app.updatedAt, `${path}.updatedAt`),
   };
@@ -341,6 +438,10 @@ export const parseLeaderboardResponse = (value: unknown): LeaderboardResponse =>
     updatedAt: readDateString(response.updatedAt, "response.updatedAt"),
     stats: readStats(response.stats),
     entries: readEntries(response.entries, "response.entries"),
+    pagination:
+      response.pagination === undefined || response.pagination === null
+        ? undefined
+        : readPagination(response.pagination),
     cache:
       response.cache === undefined || response.cache === null
         ? undefined

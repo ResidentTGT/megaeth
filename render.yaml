@@ -11,8 +11,12 @@ services:
         value: 22.13.1
       - key: LEADERBOARD_URL
         value: https://terminal.megaeth.com/leaderboard
+      - key: APPS_URL
+        value: https://terminal.megaeth.com/
       - key: LEADERBOARD_CACHE_TTL_MS
         value: 60000
+      - key: APPS_CACHE_TTL_MS
+        value: 600000
       - key: LEADERBOARD_STALE_TTL_MS
         value: 300000
       - key: LEADERBOARD_FETCH_TIMEOUT_MS

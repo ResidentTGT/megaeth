@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   decodeNextFlight,
+  extractJsonArrayMatching,
   extractJsonArrayStartingWith,
   extractJsonObject,
 } from "./nextFlight.js";
@@ -48,5 +49,27 @@ test("extractJsonArrayStartingWith extracts the surrounding array", () => {
   assert.deepEqual(result, [
     { name: "One", items: [1, 2] },
     { name: "Two" },
+  ]);
+});
+
+test("extractJsonArrayMatching extracts an array by shape", () => {
+  const result = extractJsonArrayMatching(
+    '{"other":[{"name":"Noise"}],"apps":[{"id":"1","name":"One"},{"id":"2","name":"Two"}]}',
+    (value) =>
+      Array.isArray(value) &&
+      value.length === 2 &&
+      value.every(
+        (item) =>
+          typeof item === "object" &&
+          item !== null &&
+          "id" in item &&
+          "name" in item
+      ),
+    "objects with id and name"
+  );
+
+  assert.deepEqual(result, [
+    { id: "1", name: "One" },
+    { id: "2", name: "Two" },
   ]);
 });

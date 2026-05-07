@@ -1,13 +1,11 @@
-import type { LeaderboardEntry } from "./types.js";
+import type {
+  LeaderboardEntry,
+  LeaderboardSortKey,
+  SortDirection as SharedSortDirection,
+} from "./types.js";
 
-export type SortKey =
-  | "rank"
-  | "mainWalletAddress"
-  | "xAccount"
-  | "totalPoints"
-  | "weeklyPointsChange";
-
-export type SortDirection = "asc" | "desc";
+export type SortKey = LeaderboardSortKey;
+export type SortDirection = SharedSortDirection;
 
 export type SortState = {
   key: SortKey;

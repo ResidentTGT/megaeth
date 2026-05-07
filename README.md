@@ -27,6 +27,11 @@ Local URLs:
 - Frontend: `http://localhost:5173`
 - Backend health: `http://localhost:4000/health`
 - Backend leaderboard: `http://localhost:4000/leaderboard`
+- Backend apps: `http://localhost:4000/apps`
+
+`GET /leaderboard` returns the full cached leaderboard by default. Add
+`page`, `pageSize`, `query`, `sortKey`, and `sortDirection` query parameters to
+receive a server-side paginated result with `pagination` metadata.
 
 ## Checks
 

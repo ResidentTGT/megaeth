@@ -1,79 +1,39 @@
-import {
-  parseAppsPayload,
-  type AppsResponse,
-  type LeaderboardCacheStatus,
-} from "@megaeth-leaderboard/shared";
+import { parseAppsPayload, type AppsResponse } from "@megaeth-leaderboard/shared";
 import type { AppConfig } from "./config.js";
 import { getConfig } from "./config.js";
-import { decodeNextFlight, extractJsonArrayStartingWith } from "./nextFlight.js";
+import { decodeNextFlight, extractJsonArrayMatching } from "./nextFlight.js";
+import {
+  buildCacheInfo,
+  createCachedFetcher,
+  isRetryableStatus,
+  RetryableFetchError,
+} from "./upstreamCache.js";
 
-type CachedApps = Omit<AppsResponse, "cache"> & {
-  fetchedAtMs: number;
-  expiresAtMs: number;
-  staleUntilMs: number;
-};
+type AppsData = Pick<AppsResponse, "apps">;
 
-class AppsFetchError extends Error {
-  readonly retryable: boolean;
-
-  constructor(message: string, retryable: boolean) {
-    super(message);
-    this.name = "AppsFetchError";
-    this.retryable = retryable;
-  }
-}
-
-let cachedApps: CachedApps | null = null;
-let inflightRequest: Promise<AppsResponse> | null = null;
-
-const isRetryableStatus = (status: number) =>
-  status === 408 || status === 429 || status >= 500;
-
-const isRetryableError = (error: unknown) => {
-  if (error instanceof AppsFetchError) {
-    return error.retryable;
-  }
-
-  if (error instanceof Error) {
-    return (
-      error instanceof TypeError ||
-      error.name === "TimeoutError" ||
-      error.name === "AbortError"
-    );
-  }
-
-  return false;
-};
-
-const delay = (ms: number) =>
-  new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-
-const toIso = (timestampMs: number) => new Date(timestampMs).toISOString();
-
-const withCacheInfo = (
-  snapshot: CachedApps,
-  status: LeaderboardCacheStatus
-): AppsResponse => ({
-  updatedAt: snapshot.updatedAt,
-  apps: snapshot.apps,
-  cache: {
-    status,
-    fetchedAt: toIso(snapshot.fetchedAtMs),
-    expiresAt: toIso(snapshot.expiresAtMs),
-    staleUntil: toIso(snapshot.staleUntilMs),
-  },
-});
-
-const isNamedApp = (value: unknown) =>
+const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" &&
   value !== null &&
-  !Array.isArray(value) &&
-  typeof (value as { name?: unknown }).name === "string";
+  !Array.isArray(value);
 
-const fetchAppsOnce = async (config: AppConfig): Promise<CachedApps> => {
-  const signal = AbortSignal.timeout(config.leaderboardFetchTimeoutMs);
+const isAppRecord = (value: unknown): value is Record<string, unknown> =>
+  isRecord(value) &&
+  typeof value.id === "string" &&
+  typeof value.name === "string" &&
+  typeof value.slug === "string" &&
+  Array.isArray(value.categories) &&
+  Array.isArray(value.suggestedActions) &&
+  typeof value.status === "string" &&
+  typeof value.comingSoon === "boolean" &&
+  typeof value.isLiveSoon === "boolean";
+
+const isAppsPayload = (value: unknown) =>
+  Array.isArray(value) && value.some(isAppRecord);
+
+const fetchAppsData = async (
+  config: AppConfig,
+  signal: AbortSignal
+): Promise<AppsData> => {
   const response = await fetch(config.appsUrl, {
     signal,
     headers: {
@@ -83,7 +43,7 @@ const fetchAppsOnce = async (config: AppConfig): Promise<CachedApps> => {
   });
 
   if (!response.ok) {
-    throw new AppsFetchError(
+    throw new RetryableFetchError(
       `MegaETH apps returned HTTP ${response.status}`,
       isRetryableStatus(response.status)
     );
@@ -91,83 +51,39 @@ const fetchAppsOnce = async (config: AppConfig): Promise<CachedApps> => {
 
   const html = await response.text();
   const flightPayload = decodeNextFlight(html);
-  const appsPayload = extractJsonArrayStartingWith(
+  const appsPayload = extractJsonArrayMatching(
     flightPayload,
-    '"name":"gTrade | Gains Network"'
+    isAppsPayload,
+    "MegaETH apps payload"
   );
-  const namedAppsPayload = Array.isArray(appsPayload)
-    ? appsPayload.filter(isNamedApp)
-    : appsPayload;
   const apps = parseAppsPayload(
-    namedAppsPayload
+    Array.isArray(appsPayload) ? appsPayload.filter(isAppRecord) : appsPayload
   );
-  const fetchedAtMs = Date.now();
 
   return {
-    updatedAt: toIso(fetchedAtMs),
     apps,
-    fetchedAtMs,
-    expiresAtMs: fetchedAtMs + config.appsCacheTtlMs,
-    staleUntilMs:
-      fetchedAtMs + config.appsCacheTtlMs + config.leaderboardStaleTtlMs,
   };
 };
 
-export const fetchAppsFromSource = async (
+const appsFetcher = createCachedFetcher<AppsData, AppsResponse>({
+  name: "apps",
+  fetchData: fetchAppsData,
+  getCacheTtlMs: (config) => config.appsCacheTtlMs,
+  toResponse: (snapshot, status) => ({
+    updatedAt: snapshot.updatedAt,
+    apps: snapshot.apps,
+    cache: buildCacheInfo(snapshot, status),
+  }),
+});
+
+export const fetchAppsFromSource = (
   config: AppConfig = getConfig()
-): Promise<AppsResponse> => {
-  let lastError: unknown;
+): Promise<AppsResponse> => appsFetcher.fetchFromSource(config);
 
-  for (let attempt = 1; attempt <= config.leaderboardFetchAttempts; attempt += 1) {
-    try {
-      const snapshot = await fetchAppsOnce(config);
-      cachedApps = snapshot;
-      return withCacheInfo(snapshot, "fresh");
-    } catch (error) {
-      lastError = error;
-
-      if (
-        attempt >= config.leaderboardFetchAttempts ||
-        !isRetryableError(error)
-      ) {
-        break;
-      }
-
-      const backoffMs =
-        config.leaderboardRetryBaseDelayMs * 2 ** Math.max(0, attempt - 1);
-      if (backoffMs > 0) {
-        await delay(backoffMs);
-      }
-    }
-  }
-
-  throw lastError instanceof Error
-    ? lastError
-    : new Error("Unknown apps fetch failure");
-};
-
-export const getApps = async (
+export const getApps = (
   config: AppConfig = getConfig()
-): Promise<AppsResponse> => {
-  const now = Date.now();
+): Promise<AppsResponse> => appsFetcher.get(config);
 
-  if (cachedApps && now < cachedApps.expiresAtMs) {
-    return withCacheInfo(cachedApps, "fresh");
-  }
-
-  if (!inflightRequest) {
-    inflightRequest = fetchAppsFromSource(config).finally(() => {
-      inflightRequest = null;
-    });
-  }
-
-  try {
-    return await inflightRequest;
-  } catch (error) {
-    if (cachedApps && now < cachedApps.staleUntilMs) {
-      return withCacheInfo(cachedApps, "stale");
-    }
-
-    throw error;
-  }
+export const clearAppsCache = () => {
+  appsFetcher.clear();
 };

@@ -60,6 +60,68 @@ export const extractJsonObject = (text: string, key: string): unknown => {
   throw new Error(`Cannot find "${key}" object end`);
 };
 
+const findJsonArrayEnd = (text: string, start: number) => {
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let index = start; index < text.length; index += 1) {
+    const char = text[index];
+
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+
+    if (char === "\\") {
+      escaped = true;
+      continue;
+    }
+
+    if (char === '"') {
+      inString = !inString;
+      continue;
+    }
+
+    if (inString) continue;
+
+    if (char === "[") depth += 1;
+    if (char === "]") depth -= 1;
+
+    if (depth === 0) {
+      return index;
+    }
+  }
+
+  return -1;
+};
+
+export const extractJsonArrayMatching = (
+  text: string,
+  matches: (value: unknown) => boolean,
+  description: string
+): unknown => {
+  for (
+    let start = text.indexOf("[");
+    start !== -1;
+    start = text.indexOf("[", start + 1)
+  ) {
+    const end = findJsonArrayEnd(text, start);
+    if (end === -1) break;
+
+    try {
+      const value: unknown = JSON.parse(text.slice(start, end + 1));
+      if (matches(value)) {
+        return value;
+      }
+    } catch {
+      // Flight payloads contain many bracketed fragments that are not standalone JSON.
+    }
+  }
+
+  throw new Error(`Cannot find JSON array matching "${description}"`);
+};
+
 export const extractJsonArrayStartingWith = (
   text: string,
   marker: string
@@ -74,40 +136,11 @@ export const extractJsonArrayStartingWith = (
     start !== -1;
     start = text.lastIndexOf("[", start - 1)
   ) {
-    let depth = 0;
-    let inString = false;
-    let escaped = false;
+    const end = findJsonArrayEnd(text, start);
+    if (end === -1) break;
 
-    for (let index = start; index < text.length; index += 1) {
-      const char = text[index];
-
-      if (escaped) {
-        escaped = false;
-        continue;
-      }
-
-      if (char === "\\") {
-        escaped = true;
-        continue;
-      }
-
-      if (char === '"') {
-        inString = !inString;
-        continue;
-      }
-
-      if (inString) continue;
-
-      if (char === "[") depth += 1;
-      if (char === "]") depth -= 1;
-
-      if (depth === 0) {
-        if (index >= markerIndex) {
-          return JSON.parse(text.slice(start, index + 1));
-        }
-
-        break;
-      }
+    if (end >= markerIndex) {
+      return JSON.parse(text.slice(start, end + 1));
     }
   }
 

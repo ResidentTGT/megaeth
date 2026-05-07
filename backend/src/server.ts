@@ -1,44 +1,8 @@
-import cors from "@fastify/cors";
-import Fastify from "fastify";
-import { getApps } from "./appsService.js";
+import { buildApp } from "./app.js";
 import { getConfig } from "./config.js";
-import { getLeaderboard } from "./leaderboardService.js";
 
 const config = getConfig();
-
-const app = Fastify({
-  logger: true,
-});
-
-await app.register(cors, {
-  origin: config.frontendOrigins,
-});
-
-app.get("/health", async () => {
-  return { ok: true };
-});
-
-app.get("/leaderboard", async (request, reply) => {
-  try {
-    return await getLeaderboard(config);
-  } catch (error) {
-    request.log.error({ err: error }, "failed to serve leaderboard");
-    return reply.code(502).send({
-      error: "Unable to load leaderboard",
-    });
-  }
-});
-
-app.get("/apps", async (request, reply) => {
-  try {
-    return await getApps(config);
-  } catch (error) {
-    request.log.error({ err: error }, "failed to serve apps");
-    return reply.code(502).send({
-      error: "Unable to load apps",
-    });
-  }
-});
+const app = await buildApp(config);
 
 try {
   await app.listen({ port: config.port, host: config.host });
