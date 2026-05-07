@@ -1,6 +1,7 @@
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
+import MuiLink from "@mui/material/Link";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import MuiToolbar from "@mui/material/Toolbar";
@@ -12,6 +13,9 @@ const navigationTabs = [
   { label: "Leaderboard", path: "/leaderboard" },
   { label: "Apps", path: "/apps" },
 ];
+const telegramChannelUrl = "https://t.me/crypto_resident_notes";
+const telegramChannelAvatarUrl =
+  "https://t.me/i/userpic/320/crypto_resident_notes.jpg";
 
 export const AppHeader = () => {
   const location = useLocation();
@@ -90,6 +94,49 @@ export const AppHeader = () => {
               />
             ))}
           </Tabs>
+
+          <MuiLink
+            href={telegramChannelUrl}
+            target="_blank"
+            rel="noreferrer"
+            underline="none"
+            aria-label="Made by Crypto Resident's notes"
+            sx={{
+              alignItems: "center",
+              color: "text.secondary",
+              display: "inline-flex",
+              flexShrink: 0,
+              fontSize: 13,
+              fontWeight: 600,
+              gap: 0.75,
+              lineHeight: 1,
+              ml: "auto",
+              transition: "color 120ms ease",
+              whiteSpace: "nowrap",
+              "&:hover": {
+                color: "primary.main",
+              },
+            }}
+          >
+            <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
+              Made by
+            </Box>
+            <Box
+              component="img"
+              src={telegramChannelAvatarUrl}
+              alt=""
+              loading="lazy"
+              sx={{
+                bgcolor: "#101010",
+                border: "1px solid #2B2B2B",
+                borderRadius: "50%",
+                display: "block",
+                height: { xs: 28, sm: 30 },
+                objectFit: "cover",
+                width: { xs: 28, sm: 30 },
+              }}
+            />
+          </MuiLink>
         </MuiToolbar>
       </Container>
     </AppBar>

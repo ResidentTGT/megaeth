@@ -1,7 +1,6 @@
 const DEFAULT_LEADERBOARD_URL = "https://terminal.megaeth.com/leaderboard";
 const DEFAULT_APPS_URL = "https://terminal.megaeth.com/";
-const DEFAULT_FRONTEND_ORIGINS =
-  "http://localhost:5173,http://127.0.0.1:5173";
+const DEFAULT_FRONTEND_ORIGINS = "http://localhost:5173,http://127.0.0.1:5173";
 
 export type AppConfig = {
   port: number;
@@ -26,7 +25,7 @@ type NumberOptions = {
 const readString = (
   env: NodeJS.ProcessEnv,
   key: string,
-  defaultValue: string
+  defaultValue: string,
 ) => {
   const value = env[key]?.trim() || defaultValue;
 
@@ -41,10 +40,11 @@ const readNumber = (
   env: NodeJS.ProcessEnv,
   key: string,
   defaultValue: number,
-  options: NumberOptions = {}
+  options: NumberOptions = {},
 ) => {
   const rawValue = env[key]?.trim();
-  const value = rawValue === undefined || rawValue === "" ? defaultValue : Number(rawValue);
+  const value =
+    rawValue === undefined || rawValue === "" ? defaultValue : Number(rawValue);
 
   if (!Number.isFinite(value)) {
     throw new Error(`${key} must be a finite number`);
@@ -65,11 +65,7 @@ const readNumber = (
   return value;
 };
 
-const readUrl = (
-  env: NodeJS.ProcessEnv,
-  key: string,
-  defaultValue: string
-) => {
+const readUrl = (env: NodeJS.ProcessEnv, key: string, defaultValue: string) => {
   const value = readString(env, key, defaultValue);
 
   try {
@@ -88,11 +84,7 @@ const readUrl = (
 };
 
 const readOrigins = (env: NodeJS.ProcessEnv) => {
-  const rawValue = readString(
-    env,
-    "FRONTEND_ORIGIN",
-    DEFAULT_FRONTEND_ORIGINS
-  );
+  const rawValue = readString(env, "FRONTEND_ORIGIN", DEFAULT_FRONTEND_ORIGINS);
   const origins = rawValue
     .split(",")
     .map((origin) => origin.trim())
@@ -116,13 +108,15 @@ const readOrigins = (env: NodeJS.ProcessEnv) => {
   return origins;
 };
 
-export const loadConfig = (env: NodeJS.ProcessEnv = process.env): AppConfig => ({
+export const loadConfig = (
+  env: NodeJS.ProcessEnv = process.env,
+): AppConfig => ({
   port: readNumber(env, "PORT", 4000, { integer: true, min: 1, max: 65_535 }),
   host: readString(env, "HOST", "0.0.0.0"),
   frontendOrigins: readOrigins(env),
   leaderboardUrl: readUrl(env, "LEADERBOARD_URL", DEFAULT_LEADERBOARD_URL),
   appsUrl: readUrl(env, "APPS_URL", DEFAULT_APPS_URL),
-  leaderboardCacheTtlMs: readNumber(env, "LEADERBOARD_CACHE_TTL_MS", 60_000, {
+  leaderboardCacheTtlMs: readNumber(env, "LEADERBOARD_CACHE_TTL_MS", 600_000, {
     integer: true,
     min: 0,
   }),
@@ -138,7 +132,7 @@ export const loadConfig = (env: NodeJS.ProcessEnv = process.env): AppConfig => (
     env,
     "LEADERBOARD_FETCH_TIMEOUT_MS",
     10_000,
-    { integer: true, min: 100 }
+    { integer: true, min: 100 },
   ),
   leaderboardFetchAttempts: readNumber(env, "LEADERBOARD_FETCH_ATTEMPTS", 3, {
     integer: true,
@@ -149,7 +143,7 @@ export const loadConfig = (env: NodeJS.ProcessEnv = process.env): AppConfig => (
     env,
     "LEADERBOARD_RETRY_BASE_DELAY_MS",
     250,
-    { integer: true, min: 0 }
+    { integer: true, min: 0 },
   ),
 });
 
