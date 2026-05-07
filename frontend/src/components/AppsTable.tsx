@@ -273,7 +273,10 @@ export const AppsTable = ({ isInitialLoading, apps }: AppsTableProps) => (
                     <Typography
                       color="text.secondary"
                       variant="body2"
-                      sx={{ overflowWrap: "anywhere" }}
+                      sx={{
+                        overflowWrap: "anywhere",
+                        whiteSpace: "pre-line",
+                      }}
                     >
                       {override.comment}
                     </Typography>
