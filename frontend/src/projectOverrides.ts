@@ -23,24 +23,43 @@ const overridesByName: ReadonlyMap<string, ProjectOverride> = new Map(
 
 const stripWww = (host: string) => host.replace(/^www\./, "");
 
-const readHttpHost = (url: string | null) => {
+const localHttpHosts = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
+
+const parseUrl = (url: string | null) => {
   if (!url) return null;
 
   try {
-    const parsedUrl = new URL(url);
-    return parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:"
-      ? stripWww(parsedUrl.hostname)
-      : null;
+    return new URL(url);
   } catch {
     return null;
   }
+};
+
+const isUsableLaunchUrl = (url: string) => {
+  const parsedUrl = parseUrl(url);
+  if (!parsedUrl) return false;
+
+  if (parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:") {
+    return !localHttpHosts.has(parsedUrl.hostname);
+  }
+
+  return true;
+};
+
+const readHttpHost = (url: string | null) => {
+  const parsedUrl = parseUrl(url);
+  return parsedUrl?.protocol === "http:" || parsedUrl?.protocol === "https:"
+    ? stripWww(parsedUrl.hostname)
+    : null;
 };
 
 const hostsMatch = (left: string, right: string) =>
   left === right || left.endsWith(`.${right}`) || right.endsWith(`.${left}`);
 
 const getFallbackLaunchUrl = (app: EcosystemApp) =>
-  app.redirectUrls[0] ?? app.websiteUrl ?? null;
+  [app.websiteUrl, ...app.redirectUrls].find(
+    (url): url is string => Boolean(url && isUsableLaunchUrl(url))
+  ) ?? null;
 
 export const getProjectOverride = (app: EcosystemApp) =>
   overridesByName.get(normalizeProjectKey(app.name)) ?? null;

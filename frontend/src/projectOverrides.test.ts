@@ -57,6 +57,30 @@ test("getProjectLaunchUrl prefers a referral link when one is configured", () =>
   );
 });
 
+test("getProjectLaunchUrl falls back to website before redirect URLs", () => {
+  const app = createApp({
+    name: "Unknown",
+    websiteUrl: "https://example.com",
+    redirectUrls: ["https://example.com/terminal"],
+  });
+
+  assert.equal(getProjectLaunchUrl(app), "https://example.com");
+});
+
+test("getProjectLaunchUrl ignores local redirect URLs", () => {
+  const app = createApp({
+    name: "Unknown",
+    websiteUrl: null,
+    redirectUrls: [
+      "http://localhost/terminal",
+      "http://localhost:3000/terminal",
+      "https://play.example.com/terminal",
+    ],
+  });
+
+  assert.equal(getProjectLaunchUrl(app), "https://play.example.com/terminal");
+});
+
 test("getProjectActionUrl only rewrites same-project links", () => {
   const app = createApp({
     name: "Hit.One",

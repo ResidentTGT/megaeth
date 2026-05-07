@@ -26,4 +26,14 @@ export const projectOverrides: readonly ProjectOverride[] = [
     comment:
       "Тут можно купить wiTRY, yield-обертку над iTRY, который является стейблкоином турецкой лиры. Этот wiTRY можно потом где-то застейкать в экосистеме. История про ликвидность.",
   },
+  {
+    name: "TopStrike",
+    referralUrl: "https://play.topstrike.io?invite=ZA5R8LBE",
+    comment: "",
+  },
+  {
+    name: "GMX",
+    comment: "",
+    referralUrl: "https://app.gmx.io/#/trade/?ref=resident",
+  },
 ];
