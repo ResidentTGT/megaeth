@@ -14,8 +14,7 @@ const navigationTabs = [
   { label: "Apps", path: "/apps" },
 ];
 const telegramChannelUrl = "https://t.me/crypto_resident_notes";
-const telegramChannelAvatarUrl =
-  "https://t.me/i/userpic/320/crypto_resident_notes.jpg";
+const telegramChannelAvatarUrl = "/crypto-resident-notes.jpg";
 
 export const AppHeader = () => {
   const location = useLocation();
