@@ -67,6 +67,30 @@ test("GET /health returns ok", async () => {
   assert.deepEqual(response.json(), { ok: true });
 });
 
+test("GET /health allows configured frontend origins", async () => {
+  const app = await buildApp(
+    {
+      ...config,
+      frontendOrigins: ["https://www.megaeth.farm"],
+    },
+    false
+  );
+  const response = await app.inject({
+    method: "GET",
+    url: "/health",
+    headers: {
+      origin: "https://www.megaeth.farm",
+    },
+  });
+  await app.close();
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(
+    response.headers["access-control-allow-origin"],
+    "https://www.megaeth.farm"
+  );
+});
+
 test("GET /leaderboard supports server-side pagination", async () => {
   mockFetch(() => new Response(leaderboardHtml));
   const app = await buildApp(config, false);

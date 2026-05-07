@@ -1,6 +1,12 @@
 const DEFAULT_LEADERBOARD_URL = "https://terminal.megaeth.com/leaderboard";
 const DEFAULT_APPS_URL = "https://terminal.megaeth.com/";
-const DEFAULT_FRONTEND_ORIGINS = "http://localhost:5173,http://127.0.0.1:5173";
+const DEFAULT_FRONTEND_ORIGINS = [
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "https://megaeth-resident.vercel.app",
+  "https://megaeth.farm",
+  "https://www.megaeth.farm",
+];
 
 export type AppConfig = {
   port: number;
@@ -84,11 +90,11 @@ const readUrl = (env: NodeJS.ProcessEnv, key: string, defaultValue: string) => {
 };
 
 const readOrigins = (env: NodeJS.ProcessEnv) => {
-  const rawValue = readString(env, "FRONTEND_ORIGIN", DEFAULT_FRONTEND_ORIGINS);
-  const origins = rawValue
+  const configuredOrigins = (env.FRONTEND_ORIGIN ?? "")
     .split(",")
     .map((origin) => origin.trim())
     .filter(Boolean);
+  const origins = [...new Set([...DEFAULT_FRONTEND_ORIGINS, ...configuredOrigins])];
 
   if (!origins.length) {
     throw new Error("FRONTEND_ORIGIN must contain at least one origin");

@@ -12,6 +12,9 @@ test("loadConfig applies validated defaults", () => {
   assert.deepEqual(config.frontendOrigins, [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://megaeth-resident.vercel.app",
+    "https://megaeth.farm",
+    "https://www.megaeth.farm",
   ]);
 });
 
@@ -29,6 +32,10 @@ test("loadConfig parses comma-separated frontend origins", () => {
 
   assert.deepEqual(config.frontendOrigins, [
     "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://megaeth-resident.vercel.app",
+    "https://megaeth.farm",
+    "https://www.megaeth.farm",
     "https://app.example.com",
   ]);
 });
