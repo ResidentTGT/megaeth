@@ -74,22 +74,23 @@ export const projectOverrides: readonly ProjectOverride[] = [
   {
     name: "Prism",
     comment:
-      "1. Свапы на DEX\n2.Залитие ликвиднотси в пулы\n3. Предикшн-маркет",
+      "1. Свапы на DEX.\n2. Залитие ликвиднотси в пулы.\n3. Предикшн-маркет.",
     referralUrl: "https://prismfi.cc?ref=9VYFA4M7",
   },
   {
     name: "Pump Party",
     comment:
-      "Лудка в виде ставок и запускания кроликов. В лидерборде 45 человек.",
+      "Лудка в виде ставок на запускание кроликов. В лидерборде 45 человек.",
     referralUrl: "https://cannon.pumpparty.com/?ref=PY56QRUR&chain=megaeth",
   },
   {
     name: "Ubitel",
-    comment: "Реально покупать тарифы eSIM",
+    comment: "Покупать реальные тарифы eSIM.",
   },
   {
     name: "World Markets",
-    comment: "1. Свапать\n2. Депозит USDm в волт.\n3. Торговля на фьючах.",
+    comment:
+      "1. Свапать спот.\n2. Депозит USDm в волт.\n3. Торговля на фьючах.",
   },
   {
     name: "Xeet",
