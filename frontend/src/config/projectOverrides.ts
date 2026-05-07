@@ -39,8 +39,13 @@ export const projectOverrides: readonly ProjectOverride[] = [
   },
   {
     name: "GMX",
-    comment: "",
+    comment:
+      "1. Покупка GLV за USDm, чтобы получать процент с торговых комиссий. История про ликвидность.\n2. Торговать на фьючах, намывая объем.",
     referralUrl: "https://app.gmx.io/#/trade/?ref=resident",
+  },
+  {
+    name: "gTrade | Gains Network",
+    comment: "1. Депозит в gUSDm волт.\n2. Торговать на фьючах, намывая объем.",
   },
   {
     name: "Monster",
@@ -56,5 +61,39 @@ export const projectOverrides: readonly ProjectOverride[] = [
     name: "Stomp",
     comment:
       "Пошаговая пиксельная файтинг-игра с элементами гачи. Играете против пк или игроков, лутаете валюту, на неё крутите гачу ради новых покемонов, снова играете.\nОпять же непонятно, за что конкретно дают mega points, доната не нашёл, в топ 10 человек с 14ю играми за всё время. От себя добавлю, что играть в это физически больно.\nby @frigus",
+  },
+  {
+    name: "Kumbaya",
+    comment:
+      "DEX:\n1. Заливать ликвидность в пулы.\n2. Свапать, намывая объем.",
+  },
+  {
+    name: "Nextrare",
+    comment: "Доступно только в виде мобильного приложения на ios | android.",
+  },
+  {
+    name: "Prism",
+    comment:
+      "1. Свапы на DEX\n2.Залитие ликвиднотси в пулы\n3. Предикшн-маркет",
+    referralUrl: "https://prismfi.cc?ref=9VYFA4M7",
+  },
+  {
+    name: "Pump Party",
+    comment:
+      "Лудка в виде ставок и запускания кроликов. В лидерборде 45 человек.",
+    referralUrl: "https://cannon.pumpparty.com/?ref=PY56QRUR&chain=megaeth",
+  },
+  {
+    name: "Ubitel",
+    comment: "Реально покупать тарифы eSIM",
+  },
+  {
+    name: "World Markets",
+    comment: "1. Свапать\n2. Депозит USDm в волт.\n3. Торговля на фьючах.",
+  },
+  {
+    name: "Xeet",
+    comment: "Покупать паки и торговать карточками.",
+    referralUrl: "https://www.xeet.ai/refer/ResidentTGT",
   },
 ];
