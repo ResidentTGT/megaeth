@@ -10,6 +10,11 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
+import {
+  getProjectActionUrl,
+  getProjectLaunchUrl,
+  getProjectOverride,
+} from "../projectOverrides.js";
 import type { EcosystemApp } from "../types.js";
 
 type AppsTableProps = {
@@ -26,9 +31,6 @@ const linkSx = {
     textDecorationColor: "currentColor",
   },
 };
-
-const getLaunchUrl = (app: EcosystemApp) =>
-  app.redirectUrls[0] ?? app.websiteUrl ?? null;
 
 const formatStatus = (app: EcosystemApp) => {
   if (app.comingSoon) return "Coming soon";
@@ -112,8 +114,7 @@ export const AppsTable = ({ isInitialLoading, apps }: AppsTableProps) => (
       height: "100%",
       bgcolor: "#141414",
       borderColor: "#2B2B2B",
-      overflowX: "hidden",
-      overflowY: "auto",
+      overflow: "auto",
     }}
   >
     {isInitialLoading ? (
@@ -130,6 +131,7 @@ export const AppsTable = ({ isInitialLoading, apps }: AppsTableProps) => (
         size="small"
         sx={{
           tableLayout: "fixed",
+          minWidth: { xs: 1200, md: 0 },
           width: "100%",
           "& th, & td": {
             borderColor: "#2B2B2B",
@@ -150,17 +152,21 @@ export const AppsTable = ({ isInitialLoading, apps }: AppsTableProps) => (
       >
         <TableHead>
           <TableRow>
-            <TableCell sx={{ width: { xs: 190, md: 300 } }}>App</TableCell>
-            <TableCell sx={{ width: { xs: 104, md: 132 } }}>
+            <TableCell sx={{ width: { xs: "28%", md: 240 } }}>App</TableCell>
+            <TableCell sx={{ width: { xs: 109, md: 137 } }}>
               Categories
+            </TableCell>
+            <TableCell sx={{ width: { xs: 302, md: 336 } }}>
+              Comment
             </TableCell>
             <TableCell>Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {[...apps].sort(compareByActiveStatus).map((app) => {
-            const launchUrl = getLaunchUrl(app);
+            const launchUrl = getProjectLaunchUrl(app);
             const links = getAppLinks(app);
+            const override = getProjectOverride(app);
 
             return (
               <TableRow hover key={app.id}>
@@ -263,24 +269,43 @@ export const AppsTable = ({ isInitialLoading, apps }: AppsTableProps) => (
                   </Box>
                 </TableCell>
                 <TableCell>
+                  {override?.comment ? (
+                    <Typography
+                      color="text.secondary"
+                      variant="body2"
+                      sx={{ overflowWrap: "anywhere" }}
+                    >
+                      {override.comment}
+                    </Typography>
+                  ) : (
+                    <Typography color="text.secondary" variant="body2">
+                      -
+                    </Typography>
+                  )}
+                </TableCell>
+                <TableCell>
                   <Box sx={{ display: "grid", gap: 0.75 }}>
                     {app.suggestedActions.length ? (
-                      app.suggestedActions.map((action) => (
-                        <Link
-                          key={`${action.icon}-${action.link}`}
-                          href={action.link}
-                          target="_blank"
-                          rel="noreferrer"
-                          underline="hover"
-                          sx={{
-                            ...linkSx,
-                            overflowWrap: "anywhere",
-                            wordBreak: "break-word",
-                          }}
-                        >
-                          {action.description}
-                        </Link>
-                      ))
+                      app.suggestedActions.map((action) => {
+                        const actionUrl = getProjectActionUrl(app, action);
+
+                        return (
+                          <Link
+                            key={`${action.icon}-${action.link}`}
+                            href={actionUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            underline="hover"
+                            sx={{
+                              ...linkSx,
+                              overflowWrap: "anywhere",
+                              wordBreak: "break-word",
+                            }}
+                          >
+                            {action.description}
+                          </Link>
+                        );
+                      })
                     ) : (
                       "-"
                     )}

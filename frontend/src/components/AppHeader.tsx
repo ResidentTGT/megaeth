@@ -7,7 +7,7 @@ import Tabs from "@mui/material/Tabs";
 import MuiToolbar from "@mui/material/Toolbar";
 import { Link as RouterLink, useLocation } from "react-router-dom";
 
-export const CONTENT_MAX_WIDTH = 1080;
+export const CONTENT_MAX_WIDTH = 1200;
 
 const navigationTabs = [
   { label: "Leaderboard", path: "/leaderboard" },
