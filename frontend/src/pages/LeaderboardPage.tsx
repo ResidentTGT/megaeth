@@ -54,7 +54,7 @@ export const LeaderboardPage = () => {
 
   return (
     <Stack sx={{ height: "100%", minHeight: 0 }} spacing={{ xs: 1.25, md: 1.75 }}>
-      <Metrics stats={leaderboard?.stats ?? null} />
+      <Metrics season={leaderboard?.season} stats={leaderboard?.stats ?? null} />
 
       <Stack
         direction={{ xs: "column", md: "row" }}

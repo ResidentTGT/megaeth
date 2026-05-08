@@ -1,6 +1,7 @@
 import {
   buildLeaderboardStats,
   parseLeaderboardPayload,
+  parseLeaderboardSeason,
   type LeaderboardResponse,
 } from "@megaeth-leaderboard/shared";
 import type { AppConfig } from "./config.js";
@@ -13,7 +14,10 @@ import {
   RetryableFetchError,
 } from "./upstreamCache.js";
 
-type LeaderboardData = Pick<LeaderboardResponse, "entries" | "stats">;
+type LeaderboardData = Pick<
+  LeaderboardResponse,
+  "entries" | "season" | "stats"
+>;
 
 const fetchLeaderboardData = async (
   config: AppConfig,
@@ -39,9 +43,13 @@ const fetchLeaderboardData = async (
   const payload = parseLeaderboardPayload(
     extractJsonObject(flightPayload, "entries")
   );
+  const season = parseLeaderboardSeason(
+    extractJsonObject(flightPayload, "season")
+  );
 
   return {
-    stats: buildLeaderboardStats(payload.all),
+    season,
+    stats: buildLeaderboardStats(payload.all, payload.weekly, season),
     entries: payload.all,
   };
 };
@@ -52,6 +60,7 @@ const leaderboardFetcher = createCachedFetcher<LeaderboardData, LeaderboardRespo
   getCacheTtlMs: (config) => config.leaderboardCacheTtlMs,
   toResponse: (snapshot, status) => ({
     updatedAt: snapshot.updatedAt,
+    season: snapshot.season,
     stats: snapshot.stats,
     entries: snapshot.entries,
     cache: buildCacheInfo(snapshot, status),

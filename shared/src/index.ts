@@ -11,9 +11,23 @@ export type LeaderboardPayload = {
   all: LeaderboardEntry[];
 };
 
+export type LeaderboardSeason = {
+  seasonId: number;
+  seasonName: string;
+  status: string;
+  startsAt: string;
+  endsAt: string;
+};
+
 export type LeaderboardStats = {
   entriesCount: number;
   totalPointsSum: number;
+  totalWeeklyPointsChangeSum: number;
+  seasonCurrentWeek: number;
+  seasonCompletedWeeks: number;
+  seasonTotalWeeks: number;
+  projectedRemainingWeeks: number;
+  projectedTotalPoints: number;
   averageTotalPoints: number;
 };
 
@@ -37,6 +51,7 @@ export type LeaderboardCacheInfo = {
 
 export type LeaderboardResponse = {
   updatedAt: string;
+  season?: LeaderboardSeason;
   stats: LeaderboardStats;
   entries: LeaderboardEntry[];
   pagination?: LeaderboardPagination;
@@ -265,17 +280,79 @@ const readEntries = (value: unknown, path: string) => {
   );
 };
 
+const FALLBACK_SEASON_TOTAL_WEEKS = 8;
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+export const parseLeaderboardSeason = (value: unknown): LeaderboardSeason => {
+  const season = readRecord(value, "season");
+
+  return {
+    seasonId: readFiniteNumber(season.seasonId, "season.seasonId"),
+    seasonName: readString(season.seasonName, "season.seasonName"),
+    status: readString(season.status, "season.status", true),
+    startsAt: readDateString(season.startsAt, "season.startsAt"),
+    endsAt: readDateString(season.endsAt, "season.endsAt"),
+  };
+};
+
+const getSeasonProgress = (
+  season?: LeaderboardSeason,
+  now: Date = new Date()
+) => {
+  const startsAtMs = season ? Date.parse(season.startsAt) : Number.NaN;
+  const endsAtMs = season ? Date.parse(season.endsAt) : Number.NaN;
+  const hasSeasonDates =
+    Number.isFinite(startsAtMs) &&
+    Number.isFinite(endsAtMs) &&
+    endsAtMs > startsAtMs;
+  const seasonTotalWeeks = hasSeasonDates
+    ? Math.max(1, Math.ceil((endsAtMs - startsAtMs) / WEEK_MS))
+    : FALLBACK_SEASON_TOTAL_WEEKS;
+  const elapsedWeeks = hasSeasonDates
+    ? Math.max(0, Math.floor((now.getTime() - startsAtMs) / WEEK_MS))
+    : 0;
+  const seasonCompletedWeeks = Math.min(elapsedWeeks, seasonTotalWeeks);
+  const seasonCurrentWeek =
+    seasonCompletedWeeks >= seasonTotalWeeks
+      ? seasonTotalWeeks
+      : seasonCompletedWeeks + 1;
+  const projectedRemainingWeeks = Math.max(
+    seasonTotalWeeks - seasonCompletedWeeks,
+    0
+  );
+
+  return {
+    seasonCurrentWeek,
+    seasonCompletedWeeks,
+    seasonTotalWeeks,
+    projectedRemainingWeeks,
+  };
+};
+
 export const buildLeaderboardStats = (
-  entries: readonly LeaderboardEntry[]
+  entries: readonly LeaderboardEntry[],
+  weeklyEntries: readonly LeaderboardEntry[] = entries,
+  season?: LeaderboardSeason,
+  now: Date = new Date()
 ): LeaderboardStats => {
   const totalPointsSum = entries.reduce(
     (sum, entry) => sum + entry.totalPoints,
     0
   );
+  const totalWeeklyPointsChangeSum = weeklyEntries.reduce(
+    (sum, entry) => sum + entry.weeklyPointsChange,
+    0
+  );
+  const seasonProgress = getSeasonProgress(season, now);
 
   return {
     entriesCount: entries.length,
     totalPointsSum,
+    totalWeeklyPointsChangeSum,
+    ...seasonProgress,
+    projectedTotalPoints:
+      totalPointsSum +
+      totalWeeklyPointsChangeSum * seasonProgress.projectedRemainingWeeks,
     averageTotalPoints: entries.length ? totalPointsSum / entries.length : 0,
   };
 };
@@ -300,6 +377,30 @@ const readStats = (value: unknown): LeaderboardStats => {
     totalPointsSum: readFiniteNumber(
       stats.totalPointsSum,
       "response.stats.totalPointsSum"
+    ),
+    totalWeeklyPointsChangeSum: readFiniteNumber(
+      stats.totalWeeklyPointsChangeSum,
+      "response.stats.totalWeeklyPointsChangeSum"
+    ),
+    seasonCurrentWeek: readFiniteNumber(
+      stats.seasonCurrentWeek,
+      "response.stats.seasonCurrentWeek"
+    ),
+    seasonCompletedWeeks: readFiniteNumber(
+      stats.seasonCompletedWeeks,
+      "response.stats.seasonCompletedWeeks"
+    ),
+    seasonTotalWeeks: readFiniteNumber(
+      stats.seasonTotalWeeks,
+      "response.stats.seasonTotalWeeks"
+    ),
+    projectedRemainingWeeks: readFiniteNumber(
+      stats.projectedRemainingWeeks,
+      "response.stats.projectedRemainingWeeks"
+    ),
+    projectedTotalPoints: readFiniteNumber(
+      stats.projectedTotalPoints,
+      "response.stats.projectedTotalPoints"
     ),
     averageTotalPoints: readFiniteNumber(
       stats.averageTotalPoints,
@@ -436,6 +537,10 @@ export const parseLeaderboardResponse = (value: unknown): LeaderboardResponse =>
 
   return {
     updatedAt: readDateString(response.updatedAt, "response.updatedAt"),
+    season:
+      response.season === undefined || response.season === null
+        ? undefined
+        : parseLeaderboardSeason(response.season),
     stats: readStats(response.stats),
     entries: readEntries(response.entries, "response.entries"),
     pagination:

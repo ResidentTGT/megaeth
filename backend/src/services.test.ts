@@ -73,8 +73,17 @@ const encodeChunk = (value: string) => JSON.stringify(value).slice(1, -1);
 const htmlWithFlightPayload = (payload: string) =>
   `<script>self.__next_f.push([1,"${encodeChunk(payload)}"])</script>`;
 
+const season = {
+  seasonId: 1,
+  seasonName: "Season 1",
+  status: "active",
+  startsAt: "2026-04-28T00:00:00Z",
+  endsAt: "2026-06-23T00:00:00Z",
+};
+
 const leaderboardHtml = htmlWithFlightPayload(
   JSON.stringify({
+    season,
     entries: {
       all: [leaderboardEntry],
       weekly: [],

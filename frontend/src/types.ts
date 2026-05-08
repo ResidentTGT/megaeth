@@ -6,6 +6,7 @@ export type {
   LeaderboardEntry,
   LeaderboardPagination,
   LeaderboardResponse,
+  LeaderboardSeason,
   LeaderboardSortKey,
   LeaderboardStats,
   SortDirection,

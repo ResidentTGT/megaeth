@@ -11,6 +11,12 @@ const response = {
   stats: {
     entriesCount: 3,
     totalPointsSum: 160,
+    totalWeeklyPointsChangeSum: 13,
+    seasonCurrentWeek: 2,
+    seasonCompletedWeeks: 1,
+    seasonTotalWeeks: 8,
+    projectedRemainingWeeks: 7,
+    projectedTotalPoints: 251,
     averageTotalPoints: 53.333,
   },
   entries: [

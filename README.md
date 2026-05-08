@@ -6,7 +6,7 @@ Workspace app for viewing the MegaETH leaderboard:
 - `backend/` - Fastify + TypeScript API.
 - `frontend/` - Vite + React + TypeScript UI.
 
-The backend fetches the full leaderboard from `https://terminal.megaeth.com/leaderboard`, parses the embedded Next.js payload, validates it, caches the result in memory for 60 seconds, and exposes it through `GET /leaderboard`. If the source is temporarily unavailable, the backend can serve stale cached data for the configured stale window.
+The backend fetches the full leaderboard from `https://terminal.megaeth.com/leaderboard`, parses the embedded Next.js payload, validates it, caches the result in memory for 10 minutes, and exposes it through `GET /leaderboard`. If the source is temporarily unavailable, the backend can serve stale cached data for the configured stale window.
 
 ## Local Development
 

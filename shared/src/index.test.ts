@@ -7,6 +7,7 @@ import {
   parseAppsResponse,
   parseLeaderboardPayload,
   parseLeaderboardResponse,
+  parseLeaderboardSeason,
 } from "./index.js";
 
 const entry = {
@@ -15,6 +16,14 @@ const entry = {
   mainWalletAddress: "0x123",
   totalPoints: 100,
   weeklyPointsChange: 7,
+};
+
+const season = {
+  seasonId: 1,
+  seasonName: "Season 1",
+  status: "active",
+  startsAt: "2026-04-28T00:00:00.000Z",
+  endsAt: "2026-06-23T00:00:00.000Z",
 };
 
 test("parseLeaderboardPayload validates and normalizes entries", () => {
@@ -35,10 +44,20 @@ test("parseLeaderboardPayload rejects malformed numeric fields", () => {
   );
 });
 
+test("parseLeaderboardSeason accepts season timing metadata", () => {
+  assert.deepEqual(parseLeaderboardSeason(season), season);
+});
+
 test("parseLeaderboardResponse accepts cache metadata", () => {
-  const stats = buildLeaderboardStats([entry]);
+  const stats = buildLeaderboardStats(
+    [entry],
+    [entry],
+    season,
+    new Date("2026-05-08T00:00:00.000Z")
+  );
   const response = parseLeaderboardResponse({
     updatedAt: "2026-05-03T00:00:00.000Z",
+    season,
     stats,
     entries: [entry],
     pagination: {
@@ -56,6 +75,13 @@ test("parseLeaderboardResponse accepts cache metadata", () => {
   });
 
   assert.equal(response.stats.totalPointsSum, 100);
+  assert.equal(response.stats.totalWeeklyPointsChangeSum, 7);
+  assert.equal(response.stats.seasonCurrentWeek, 2);
+  assert.equal(response.stats.seasonCompletedWeeks, 1);
+  assert.equal(response.stats.seasonTotalWeeks, 8);
+  assert.equal(response.stats.projectedRemainingWeeks, 7);
+  assert.equal(response.stats.projectedTotalPoints, 149);
+  assert.equal(response.season?.seasonName, "Season 1");
   assert.equal(response.pagination?.totalRows, 1);
   assert.equal(response.cache?.status, "fresh");
 });
