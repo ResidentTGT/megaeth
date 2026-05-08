@@ -97,4 +97,14 @@ export const projectOverrides: readonly ProjectOverride[] = [
     comment: "Покупать паки и торговать карточками.",
     referralUrl: "https://www.xeet.ai/refer/ResidentTGT",
   },
+  {
+    name: "Xeet",
+    comment: "Покупать паки и торговать карточками.",
+    referralUrl: "https://www.xeet.ai/refer/ResidentTGT",
+  },
+  {
+    name: "Offshore Protocol",
+    comment: "",
+    referralUrl: "https://app.offshoreprotocol.fun/?ref=A4K69A",
+  },
 ];
