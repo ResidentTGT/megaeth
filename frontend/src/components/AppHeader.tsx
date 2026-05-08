@@ -13,7 +13,7 @@ const navigationTabs = [
   { label: "Leaderboard", path: "/leaderboard" },
   { label: "Apps", path: "/apps" },
 ];
-const telegramChannelUrl = "https://t.me/crypto_resident_notes";
+const telegramChannelUrl = "https://linktr.ee/_resident";
 const telegramChannelAvatarUrl = "/crypto-resident-notes.jpg";
 
 export const AppHeader = () => {
