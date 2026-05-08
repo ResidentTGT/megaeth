@@ -9,8 +9,8 @@ type SeasonPointCalculatorProps = {
 };
 
 const MEGA_SUPPLY = 10_000_000_000;
-const DEFAULT_MEGA_PRICE = "1.25";
-const DEFAULT_SEASON_ALLOCATION_PERCENT = "1";
+const DEFAULT_MEGA_PRICE = "1";
+const DEFAULT_SEASON_ALLOCATION_PERCENT = "0.5";
 
 const usdFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 6,
@@ -38,10 +38,10 @@ export const SeasonPointCalculator = ({
 }: SeasonPointCalculatorProps) => {
   const [megaPrice, setMegaPrice] = useState(DEFAULT_MEGA_PRICE);
   const [seasonAllocationPercent, setSeasonAllocationPercent] = useState(
-    DEFAULT_SEASON_ALLOCATION_PERCENT
+    DEFAULT_SEASON_ALLOCATION_PERCENT,
   );
   const [totalPoints, setTotalPoints] = useState(
-    formatInputNumber(defaultTotalPoints ?? 0)
+    formatInputNumber(defaultTotalPoints ?? 0),
   );
   const [hasEditedTotalPoints, setHasEditedTotalPoints] = useState(false);
 
