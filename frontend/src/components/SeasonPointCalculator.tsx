@@ -9,7 +9,7 @@ type SeasonPointCalculatorProps = {
 };
 
 const MEGA_SUPPLY = 10_000_000_000;
-const DEFAULT_MEGA_PRICE = "1";
+const DEFAULT_MEGA_PRICE = "0.1";
 const DEFAULT_SEASON_ALLOCATION_PERCENT = "0.5";
 
 const usdFormatter = new Intl.NumberFormat("en-US", {
