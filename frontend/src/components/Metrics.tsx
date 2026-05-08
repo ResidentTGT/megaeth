@@ -4,7 +4,7 @@ import CardContent from "@mui/material/CardContent";
 import Stack from "@mui/material/Stack";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import { averageFormatter, numberFormatter } from "../format.js";
+import { numberFormatter } from "../format.js";
 import type { LeaderboardSeason, LeaderboardStats } from "../types.js";
 
 type MetricsProps = {
@@ -36,12 +36,6 @@ const metricItems = [
     label: "Projected Total Points",
     format: (stats: LeaderboardStats) =>
       numberFormatter.format(stats.projectedTotalPoints),
-  },
-  {
-    key: "averageTotalPoints",
-    label: "Average Points",
-    format: (stats: LeaderboardStats) =>
-      averageFormatter.format(stats.averageTotalPoints),
   },
 ] as const;
 
@@ -125,8 +119,7 @@ export const Metrics = ({ season, stats }: MetricsProps) => (
       gap: { xs: 0.75, sm: 1.5 },
       gridTemplateColumns: {
         xs: "repeat(2, minmax(0, 1fr))",
-        sm: "repeat(3, minmax(0, 1fr))",
-        lg: "repeat(5, minmax(0, 1fr))",
+        sm: "repeat(4, minmax(0, 1fr))",
       },
     }}
   >

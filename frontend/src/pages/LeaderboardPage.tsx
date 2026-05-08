@@ -8,6 +8,7 @@ import { useMemo, useState } from "react";
 import { LeaderboardTable } from "../components/LeaderboardTable.js";
 import { Metrics } from "../components/Metrics.js";
 import { Pagination } from "../components/Pagination.js";
+import { SeasonPointCalculator } from "../components/SeasonPointCalculator.js";
 import { formatUpdatedAt } from "../format.js";
 import { useLeaderboard } from "../hooks/useLeaderboard.js";
 import type { SortKey, SortState } from "../sort.js";
@@ -55,6 +56,9 @@ export const LeaderboardPage = () => {
   return (
     <Stack sx={{ height: "100%", minHeight: 0 }} spacing={{ xs: 1.25, md: 1.75 }}>
       <Metrics season={leaderboard?.season} stats={leaderboard?.stats ?? null} />
+      <SeasonPointCalculator
+        defaultTotalPoints={leaderboard?.stats.projectedTotalPoints}
+      />
 
       <Stack
         direction={{ xs: "column", md: "row" }}
