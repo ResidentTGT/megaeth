@@ -14,8 +14,7 @@ export type SortState = {
 
 export const columns: Array<{ key: SortKey; label: string; numeric?: boolean }> = [
   { key: "rank", label: "Rank", numeric: true },
-  { key: "mainWalletAddress", label: "Wallet" },
-  { key: "xAccount", label: "X Account" },
+  { key: "displayName", label: "Display Name" },
   { key: "totalPoints", label: "Total Points", numeric: true },
   { key: "weeklyPointsChange", label: "Weekly Change", numeric: true },
 ];

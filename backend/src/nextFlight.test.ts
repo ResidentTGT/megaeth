@@ -23,12 +23,12 @@ test("decodeNextFlight joins escaped flight chunks", () => {
 
 test("extractJsonObject handles braces inside strings", () => {
   const result = extractJsonObject(
-    '{"entries":{"all":[{"mainWalletAddress":"0x{abc}"}],"weekly":[]}}',
+    '{"entries":{"all":[{"displayName":"0x{abc}"}],"weekly":[]}}',
     "entries"
   );
 
   assert.deepEqual(result, {
-    all: [{ mainWalletAddress: "0x{abc}" }],
+    all: [{ displayName: "0x{abc}" }],
     weekly: [],
   });
 });

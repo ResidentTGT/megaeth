@@ -41,13 +41,13 @@ const leaderboardHtml = htmlWithFlightPayload(
       all: [
         {
           rank: 1,
-          mainWalletAddress: "0xaaa",
+          displayName: "0xaaa",
           totalPoints: 100,
           weeklyPointsChange: 7,
         },
         {
           rank: 2,
-          mainWalletAddress: "0xbbb",
+          displayName: "0xbbb",
           totalPoints: 50,
           weeklyPointsChange: 5,
         },
@@ -112,8 +112,42 @@ test("GET /leaderboard supports server-side pagination", async () => {
 
   assert.equal(response.statusCode, 200);
   assert.equal(body.entries.length, 1);
-  assert.equal(body.entries[0].mainWalletAddress, "0xaaa");
+  assert.equal(body.entries[0].displayName, "0xaaa");
   assert.equal(body.pagination.totalRows, 2);
+});
+
+test("GET /leaderboard accepts displayName upstream entries", async () => {
+  mockFetch(() =>
+    new Response(
+      htmlWithFlightPayload(
+        JSON.stringify({
+          season,
+          entries: {
+            all: [
+              {
+                rank: 1,
+                displayName: "0xA03C...60aa",
+                totalPoints: 100,
+                weeklyPointsChange: 7,
+              },
+            ],
+            weekly: [],
+          },
+        })
+      )
+    )
+  );
+  const app = await buildApp(config, false);
+  const response = await app.inject({
+    method: "GET",
+    url: "/leaderboard?page=1&pageSize=1&query=a03c",
+  });
+  await app.close();
+  const body = response.json();
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(body.entries[0].displayName, "0xA03C...60aa");
+  assert.equal(body.pagination.totalRows, 1);
 });
 
 test("GET /leaderboard rejects invalid query parameters", async () => {

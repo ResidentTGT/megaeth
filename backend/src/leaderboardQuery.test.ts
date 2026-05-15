@@ -22,19 +22,19 @@ const response = {
   entries: [
     {
       rank: 2,
-      mainWalletAddress: "0xbbb",
+      displayName: "0xbbb",
       totalPoints: 50,
       weeklyPointsChange: 5,
     },
     {
       rank: 1,
-      mainWalletAddress: "0xaaa",
+      displayName: "0xaaa",
       totalPoints: 100,
       weeklyPointsChange: 7,
     },
     {
       rank: 3,
-      mainWalletAddress: "0xabc",
+      displayName: "0xabc",
       totalPoints: 10,
       weeklyPointsChange: 1,
     },
@@ -62,7 +62,7 @@ test("selectLeaderboardPage filters, sorts, and paginates entries", () => {
   });
 
   assert.deepEqual(
-    page.entries.map((entry) => entry.mainWalletAddress),
+    page.entries.map((entry) => entry.displayName),
     ["0xaaa"]
   );
   assert.deepEqual(page.pagination, {

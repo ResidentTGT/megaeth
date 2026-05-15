@@ -11,8 +11,7 @@ const MAX_PAGE_SIZE = 500;
 
 const sortKeys = new Set<LeaderboardSortKey>([
   "rank",
-  "mainWalletAddress",
-  "xAccount",
+  "displayName",
   "totalPoints",
   "weeklyPointsChange",
 ]);
@@ -133,7 +132,7 @@ export const selectLeaderboardPage = (
 ): LeaderboardResponse => {
   const filteredEntries = options.query
     ? response.entries.filter((entry) =>
-        entry.mainWalletAddress.toLowerCase().includes(options.query)
+        entry.displayName.toLowerCase().includes(options.query)
       )
     : response.entries;
   const sortedEntries = [...filteredEntries].sort((left, right) => {

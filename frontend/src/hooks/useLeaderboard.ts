@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { fetchLeaderboard, type LeaderboardRequest } from "../api.js";
 import type { LeaderboardResponse } from "../types.js";
 
-export const useLeaderboard = (request: LeaderboardRequest) => {
+export const useLeaderboard = (request?: LeaderboardRequest) => {
   const [leaderboard, setLeaderboard] = useState<LeaderboardResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

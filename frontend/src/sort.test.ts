@@ -6,13 +6,13 @@ import type { LeaderboardEntry } from "./types.js";
 const entries: LeaderboardEntry[] = [
   {
     rank: 2,
-    mainWalletAddress: "0xbbb",
+    displayName: "0xbbb",
     totalPoints: 50,
     weeklyPointsChange: 2,
   },
   {
     rank: 1,
-    mainWalletAddress: "0xaaa",
+    displayName: "0xaaa",
     totalPoints: 100,
     weeklyPointsChange: 1,
   },
@@ -21,7 +21,7 @@ const entries: LeaderboardEntry[] = [
 test("sortEntries sorts numeric columns in the requested direction", () => {
   assert.deepEqual(
     sortEntries(entries, { key: "totalPoints", direction: "desc" }).map(
-      (entry) => entry.mainWalletAddress
+      (entry) => entry.displayName
     ),
     ["0xaaa", "0xbbb"]
   );
@@ -29,7 +29,7 @@ test("sortEntries sorts numeric columns in the requested direction", () => {
 
 test("sortEntries sorts string columns case-insensitively", () => {
   assert.deepEqual(
-    sortEntries(entries, { key: "mainWalletAddress", direction: "asc" }).map(
+    sortEntries(entries, { key: "displayName", direction: "asc" }).map(
       (entry) => entry.rank
     ),
     [1, 2]

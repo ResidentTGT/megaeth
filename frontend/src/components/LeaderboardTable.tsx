@@ -1,6 +1,5 @@
 import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
-import Link from "@mui/material/Link";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -20,25 +19,6 @@ type LeaderboardTableProps = {
   sort: SortState;
   onSort: (key: SortKey) => void;
 };
-
-const linkSx = {
-  color: "inherit",
-  textDecorationColor: "transparent",
-  transition: "color 120ms ease, text-decoration-color 120ms ease",
-  "&:hover": {
-    color: "primary.main",
-    textDecorationColor: "currentColor",
-  },
-};
-
-const getAddressUrl = (walletAddress: string) =>
-  `https://mega.etherscan.io/address/${encodeURIComponent(walletAddress)}`;
-
-const getTwitterHandle = (xAccount: string) =>
-  xAccount.trim().replace(/^@+/, "");
-
-const getTwitterUrl = (xAccount: string) =>
-  `https://x.com/${encodeURIComponent(getTwitterHandle(xAccount))}`;
 
 export const LeaderboardTable = ({
   isInitialLoading,
@@ -111,7 +91,7 @@ export const LeaderboardTable = ({
         </TableHead>
         <TableBody>
           {rows.map((entry) => (
-            <TableRow hover key={`${entry.rank}-${entry.mainWalletAddress}`}>
+            <TableRow hover key={`${entry.rank}-${entry.displayName}`}>
               <TableCell>#{entry.rank}</TableCell>
               <TableCell
                 sx={{
@@ -120,32 +100,7 @@ export const LeaderboardTable = ({
                   fontSize: 13,
                 }}
               >
-                <Link
-                  href={getAddressUrl(entry.mainWalletAddress)}
-                  target="_blank"
-                  rel="noreferrer"
-                  underline="hover"
-                  color="inherit"
-                  sx={{ ...linkSx, font: "inherit" }}
-                >
-                  {entry.mainWalletAddress}
-                </Link>
-              </TableCell>
-              <TableCell>
-                {entry.xAccount ? (
-                  <Link
-                    href={getTwitterUrl(entry.xAccount)}
-                    target="_blank"
-                    rel="noreferrer"
-                    underline="hover"
-                    color="inherit"
-                    sx={linkSx}
-                  >
-                    @{getTwitterHandle(entry.xAccount)}
-                  </Link>
-                ) : (
-                  "-"
-                )}
+                {entry.displayName}
               </TableCell>
               <TableCell>{numberFormatter.format(entry.totalPoints)}</TableCell>
               <TableCell>

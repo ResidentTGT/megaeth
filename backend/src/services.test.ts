@@ -29,7 +29,7 @@ const baseConfig: AppConfig = {
 
 const leaderboardEntry = {
   rank: 1,
-  mainWalletAddress: "0x123",
+  displayName: "0x123",
   totalPoints: 100,
   weeklyPointsChange: 7,
 };
@@ -119,7 +119,7 @@ test("getLeaderboard reuses a fresh cached response", async () => {
 
   assert.equal(requests, 1);
   assert.equal(first.cache?.status, "fresh");
-  assert.equal(second.entries[0]?.mainWalletAddress, "0x123");
+  assert.equal(second.entries[0]?.displayName, "0x123");
 });
 
 test("getLeaderboard serves stale cache after refresh failure", async () => {

@@ -7,36 +7,27 @@ import Typography from "@mui/material/Typography";
 import { useMemo, useState } from "react";
 import { LeaderboardTable } from "../components/LeaderboardTable.js";
 import { Metrics } from "../components/Metrics.js";
-import { Pagination } from "../components/Pagination.js";
 import { SeasonPointCalculator } from "../components/SeasonPointCalculator.js";
 import { formatUpdatedAt } from "../format.js";
 import { useLeaderboard } from "../hooks/useLeaderboard.js";
-import type { SortKey, SortState } from "../sort.js";
-
-const PAGE_SIZE = 100;
+import { sortEntries, type SortKey, type SortState } from "../sort.js";
 
 export const LeaderboardPage = () => {
-  const [walletQuery, setWalletQuery] = useState("");
+  const [displayNameQuery, setDisplayNameQuery] = useState("");
   const [sort, setSort] = useState<SortState>({ key: "rank", direction: "asc" });
-  const [page, setPage] = useState(1);
-  const leaderboardRequest = useMemo(
-    () => ({
-      page,
-      pageSize: PAGE_SIZE,
-      query: walletQuery,
-      sortKey: sort.key,
-      sortDirection: sort.direction,
-    }),
-    [page, sort.direction, sort.key, walletQuery]
-  );
-  const { error, isLoading, leaderboard, reload } =
-    useLeaderboard(leaderboardRequest);
-  const rows = leaderboard?.entries ?? [];
-  const currentPage = leaderboard?.pagination?.page ?? page;
-  const totalRows = leaderboard?.pagination?.totalRows ?? rows.length;
+  const { error, isLoading, leaderboard, reload } = useLeaderboard();
+  const rows = useMemo(() => {
+    const normalizedQuery = displayNameQuery.trim().toLowerCase();
+    const filteredRows = normalizedQuery
+      ? (leaderboard?.entries ?? []).filter((entry) =>
+          entry.displayName.toLowerCase().includes(normalizedQuery)
+        )
+      : leaderboard?.entries ?? [];
+
+    return sortEntries(filteredRows, sort);
+  }, [displayNameQuery, leaderboard?.entries, sort]);
 
   const toggleSort = (key: SortKey) => {
-    setPage(1);
     setSort((current) => {
       if (current.key !== key) {
         return { key, direction: "asc" };
@@ -47,10 +38,6 @@ export const LeaderboardPage = () => {
         direction: current.direction === "asc" ? "desc" : "asc",
       };
     });
-  };
-
-  const changePage = (nextPage: number) => {
-    setPage(Math.max(nextPage, 1));
   };
 
   return (
@@ -71,11 +58,10 @@ export const LeaderboardPage = () => {
         <TextField
           type="search"
           size="small"
-          value={walletQuery}
-          placeholder="Search wallet address"
+          value={displayNameQuery}
+          placeholder="Search display name"
           onChange={(event) => {
-            setPage(1);
-            setWalletQuery(event.target.value);
+            setDisplayNameQuery(event.target.value);
           }}
           sx={{ width: { xs: "100%", md: 440 } }}
         />
@@ -123,13 +109,6 @@ export const LeaderboardPage = () => {
           onSort={toggleSort}
         />
       </Box>
-
-      <Pagination
-        currentPage={currentPage}
-        pageSize={PAGE_SIZE}
-        totalRows={totalRows}
-        onPageChange={changePage}
-      />
     </Stack>
   );
 };

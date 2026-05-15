@@ -1,7 +1,6 @@
 export type LeaderboardEntry = {
   rank: number;
-  xAccount?: string;
-  mainWalletAddress: string;
+  displayName: string;
   totalPoints: number;
   weeklyPointsChange: number;
 };
@@ -33,8 +32,7 @@ export type LeaderboardStats = {
 
 export type LeaderboardSortKey =
   | "rank"
-  | "mainWalletAddress"
-  | "xAccount"
+  | "displayName"
   | "totalPoints"
   | "weeklyPointsChange";
 
@@ -248,20 +246,10 @@ const readSafeUrlStringArray = (value: unknown, path: string) => {
 
 const readEntry = (value: unknown, path: string): LeaderboardEntry => {
   const entry = readRecord(value, path);
-  const xAccountValue = entry.xAccount;
-  let xAccount: string | undefined;
-
-  if (xAccountValue !== undefined && xAccountValue !== null) {
-    xAccount = readString(xAccountValue, `${path}.xAccount`, true);
-  }
 
   return {
     rank: readFiniteNumber(entry.rank, `${path}.rank`),
-    xAccount,
-    mainWalletAddress: readString(
-      entry.mainWalletAddress,
-      `${path}.mainWalletAddress`
-    ),
+    displayName: readString(entry.displayName, `${path}.displayName`, true),
     totalPoints: readFiniteNumber(entry.totalPoints, `${path}.totalPoints`),
     weeklyPointsChange: readFiniteNumber(
       entry.weeklyPointsChange,

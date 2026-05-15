@@ -12,8 +12,7 @@ import {
 
 const entry = {
   rank: 1,
-  xAccount: "mega",
-  mainWalletAddress: "0x123",
+  displayName: "mega",
   totalPoints: 100,
   weeklyPointsChange: 7,
 };
@@ -31,6 +30,33 @@ test("parseLeaderboardPayload validates and normalizes entries", () => {
     weekly: [],
     all: [entry],
   });
+});
+
+test("parseLeaderboardPayload accepts displayName entries", () => {
+  assert.deepEqual(
+    parseLeaderboardPayload({
+      weekly: [],
+      all: [
+        {
+          rank: 1,
+          displayName: "0xA03C...60aa",
+          totalPoints: 100,
+          weeklyPointsChange: 7,
+        },
+      ],
+    }),
+    {
+      weekly: [],
+      all: [
+        {
+          rank: 1,
+          displayName: "0xA03C...60aa",
+          totalPoints: 100,
+          weeklyPointsChange: 7,
+        },
+      ],
+    }
+  );
 });
 
 test("parseLeaderboardPayload rejects malformed numeric fields", () => {
