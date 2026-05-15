@@ -1,5 +1,6 @@
 import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
+import Link from "@mui/material/Link";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -19,6 +20,25 @@ type LeaderboardTableProps = {
   sort: SortState;
   onSort: (key: SortKey) => void;
 };
+
+const linkSx = {
+  color: "inherit",
+  textDecorationColor: "transparent",
+  transition: "color 120ms ease, text-decoration-color 120ms ease",
+  "&:hover": {
+    color: "primary.main",
+    textDecorationColor: "currentColor",
+  },
+};
+
+const isTruncatedWalletDisplayName = (displayName: string) =>
+  /^0x[a-fA-F0-9]+\.\.\.[a-fA-F0-9]+$/.test(displayName.trim());
+
+const getTwitterHandle = (displayName: string) =>
+  displayName.trim().replace(/^@+/, "");
+
+const getTwitterUrl = (displayName: string) =>
+  `https://x.com/${encodeURIComponent(getTwitterHandle(displayName))}`;
 
 export const LeaderboardTable = ({
   isInitialLoading,
@@ -100,7 +120,20 @@ export const LeaderboardTable = ({
                   fontSize: 13,
                 }}
               >
-                {entry.displayName}
+                {isTruncatedWalletDisplayName(entry.displayName) ? (
+                  entry.displayName
+                ) : (
+                  <Link
+                    href={getTwitterUrl(entry.displayName)}
+                    target="_blank"
+                    rel="noreferrer"
+                    underline="hover"
+                    color="inherit"
+                    sx={{ ...linkSx, font: "inherit" }}
+                  >
+                    {getTwitterHandle(entry.displayName)}
+                  </Link>
+                )}
               </TableCell>
               <TableCell>{numberFormatter.format(entry.totalPoints)}</TableCell>
               <TableCell>
